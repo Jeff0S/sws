@@ -303,6 +303,7 @@ APIdef g_apidefs[] =
 	{ APIFUNC(NF_Win32_GetSystemMetrics), "int", "int", "nIndex", "Equivalent to win32 API GetSystemMetrics().", },
 	{ APIFUNC(NF_GetSWS_RMSoptions), "void", "double*,double*", "targetOut,windowSizeOut", "Get SWS analysis/normalize options. See <a href=\"#NF_SetSWS_RMSoptions\">NF_SetSWS_RMSoptions</a>.", },
 	{ APIFUNC(NF_SetSWS_RMSoptions), "bool", "double,double", "targetLevel,windowSize", "Set SWS analysis/normalize options (same as running action 'SWS: Set RMS analysis/normalize options'). targetLevel: target RMS normalize level (dB), windowSize: window size for peak RMS (sec.)", },
+	{ APIFUNC(NF_ReadAudioFileBitrate), "int", "const char*", "fn", "Returns the bitrate of an audio file if available (0 otherwise). For supported filetypes see <a href=\"https://taglib.org/api/classTagLib_1_1AudioProperties.html#ae5b7650b50f8c8f8cc022f25cfee48c5\">TagLib::AudioProperties::bitrate</a>.", },
 	// /*** nofish stuff ***
 
 	{ APIFUNC(SN_FocusMIDIEditor), "void", "", "", "Focuses the active/open MIDI editor.", },

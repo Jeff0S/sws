@@ -39,6 +39,8 @@
 #include "../SnM/SnM_Project.h" // #974
 #include "../SnM/SnM_Chunk.h" // SNM_FXSummaryParser
 
+#include <taglib/fileref.h>
+
 // #781, peak/RMS
 double DoGetMediaItemMaxPeakAndMaxPeakPos(MediaItem* item, double* maxPeakPosOut) // maxPeakPosOut == NULL: peak only
 {
@@ -337,6 +339,34 @@ int NF_Win32_GetSystemMetrics(int nIndex)
 {
 	return GetSystemMetrics(nIndex);
 }
+
+// get taglib audio properties (bitrate only currently)
+enum class TagLibAudioProperties {
+	bitrate = 0
+};
+
+int GetTagLibAudioProperty(const char* fn, TagLibAudioProperties property)
+{
+	if (!fn || !*fn)
+		return 0;
+	TagLib::FileRef f(fn); 
+	if (!f.isNull() && f.audioProperties()) 
+	{
+		switch (property) 
+		{
+			case TagLibAudioProperties::bitrate: 
+				return f.audioProperties()->bitrate();	
+		}		
+	}
+
+	return 0;
+}
+
+int NF_ReadAudioFileBitrate(const char* fn)
+{
+	return GetTagLibAudioProperty(fn, TagLibAudioProperties::bitrate);
+}
+
 
 // #974
 /*

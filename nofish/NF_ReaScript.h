@@ -53,6 +53,7 @@ void           NF_UpdateSWSMarkerRegionSubWindow();
 
 bool           NF_TakeFX_GetFXModuleName(MediaItem* item, int fx, char* nameOut, int nameOutSz);
 int            NF_Win32_GetSystemMetrics(int nIndex);
+int            NF_ReadAudioFileBitrate(const char* fn);
 
 
 // #974
