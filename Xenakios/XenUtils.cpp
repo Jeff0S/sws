@@ -163,6 +163,67 @@ char *BrowseForFiles(const char *text, const char *initialdir, const char *initi
 	return NULL;
 }
 
+std::vector<char*> BrowseForFilesMultiSelect(const char* text, const char* initialdir, const char* initialfile, bool allowmul, const char* extlist)
+{
+	std::vector<char*> filelist;
+
+	int rv = 0;
+	int temp_size = allowmul ? (MAX_PATH * 512) : MAX_PATH * 2;
+	char* temp = (char*)malloc(temp_size);
+	if (!temp)
+		return filelist;
+
+	memset(temp, 0, temp_size);
+
+	OPENFILENAME l = { sizeof(l), };
+	l.hwndOwner = g_hwndParent;
+	l.lpstrFilter = extlist;
+	l.lpstrFile = temp;
+	l.nMaxFile = temp_size;
+	l.lpstrTitle = text;
+	l.lpstrDefExt = NULL;
+	l.lpstrInitialDir = initialdir;
+	l.Flags = OFN_DONTADDTORECENT | OFN_EXPLORER | (allowmul ? OFN_ALLOWMULTISELECT : 0) | OFN_FILEMUSTEXIST;
+
+	if (GetOpenFileName(&l))
+	{
+		if (temp[strlen(temp) + 1]) // Check for more than one file
+		{	// More than one file is returned in the format PATH.FILE1.FILE2..
+			// We want PATH\FILE1.PATH\FILE2.. (period means NULL here)
+			int pathLength = (int)strlen(temp);
+			char* pFile = temp + pathLength + 1;
+			int newLength = 1; // double NULL terminate
+			while (pFile[0])
+			{
+				newLength += pathLength + (int)strlen(pFile) + 2; // 2 extra for \ + NULL
+				pFile += strlen(pFile) + 1;
+			}
+			char* fullFilenames = (char*)malloc(newLength);
+			pFile = temp + pathLength + 1;
+			char* pFull = fullFilenames;
+			while (pFile[0])
+			{
+				sprintf(pFull, "%s\\%s", temp, pFile);
+				filelist.push_back(pFull);
+				pFull += strlen(pFull) + 1;
+				pFile += strlen(pFile) + 1;
+			}
+			pFull[0] = 0;
+			free(temp);
+			//return fullFilenames;
+			return filelist;
+		}
+
+		if (filelist.empty()) {
+			filelist.push_back(temp);
+		}
+
+		return filelist;
+	}
+
+	return filelist;
+}
+
 bool BrowseForSaveFile(const char *text, const char *initialdir, const char *initialfile, const char *extlist, char *fn, int fnsize)
 {
 	if (initialfile)

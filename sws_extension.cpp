@@ -64,6 +64,8 @@
 #endif
 #include "./reaper/localize.h"
 
+#include "ProjectsSetList/ProjectSetListMgr.h"
+#include "ProjectsSetList/ProjectSetList.h"
 
 REAPER_PLUGIN_HINSTANCE g_hInst = NULL;
 HWND g_hwndParent = NULL;
@@ -499,6 +501,7 @@ public:
 		AWDoAutoGroup(rec);
 		ItemPreviewPlayState(play, rec);
 		BR_CSurf_SetPlayState(play, pause, rec);
+		ProjectSetListPlayState(play, pause, rec);
 	}
 
 	// This is our only notification of active project tab change, so update everything
@@ -1221,6 +1224,10 @@ error:
 			ERR_RETURN("Project List init error.")
 		if (!ProjectMgrInit())
 			ERR_RETURN("Project Mgr init error.")
+		if (!ProjectSetListInit())
+			ERR_RETURN("Set List init error.")
+		if (!ProjectSetListMgrInit())
+			ERR_RETURN("Set List init error.")
 		if (!XenakiosInit())
 			ERR_RETURN("Xenakios init error.")
 		if (!MiscInit())

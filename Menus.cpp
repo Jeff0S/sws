@@ -300,6 +300,13 @@ void SWSCreateExtensionsMenu(HMENU hMenu)
 	AddToMenu(hPrjMgmtSubMenu, SWS_SEPARATOR, 0);
 	AddToMenu(hPrjMgmtSubMenu, __LOCALIZE("(related projects list)", "sws_ext_menu"), NamedCommandLookup("_SWS_OPENRELATED1"));
 
+	HMENU hPrjSetListMgmtSubMenu = CreatePopupMenu();
+	AddSubMenu(hMenu, hPrjSetListMgmtSubMenu, __LOCALIZE("Project Set List", "sws_ext_menu"));
+	AddToMenu(hPrjSetListMgmtSubMenu, "Project Set List", NamedCommandLookup("_SWS_PROJSETLIST_OPEN"));
+	AddToMenu(hPrjSetListMgmtSubMenu, SWS_SEPARATOR, 0);
+	AddToMenu(hPrjSetListMgmtSubMenu, __LOCALIZE("Open set list...", "sws_ext_menu"), NamedCommandLookup("_SWS_PROJSETLISTSOPEN"));
+	AddToMenu(hPrjSetListMgmtSubMenu, __LOCALIZE("Save set list...", "sws_ext_menu"), NamedCommandLookup("_SWS_PROJSETLISTSAVE"));
+
 	HMENU hStartupSubMenu = CreatePopupMenu();
 	AddSubMenu(hMenu, hStartupSubMenu, __LOCALIZE("Startup actions", "sws_ext_menu"));
 	AddToMenu(hStartupSubMenu, __LOCALIZE("Set project startup action...", "sws_ext_menu"), NamedCommandLookup("_S&M_SET_PRJ_ACTION"));

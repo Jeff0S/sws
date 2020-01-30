@@ -353,6 +353,7 @@ int SearchDirectory(vector<string> &refvecFiles, const char* cDir, const char* c
 #ifdef _WIN32
 bool BrowseForSaveFile(const char *text, const char *initialdir, const char *initialfile, const char *extlist, char *fn, int fnsize);
 char *BrowseForFiles(const char *text, const char *initialdir, const char *initialfile, bool allowmul, const char *extlist);
+std::vector<char*> BrowseForFilesMultiSelect(const char* text, const char* initialdir, const char* initialfile, bool allowmul, const char* extlist);
 bool BrowseForDirectory(const char *text, const char *initialdir, char *fn, int fnsize);
 #endif
 bool FileExists(const char* file);

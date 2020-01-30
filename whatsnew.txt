@@ -97,6 +97,24 @@ Windows installer:
 +Automatically delete old .reapeaks files (also for "Xenakios/SWS: Rename take source files...")
 +Don't double-append file extension if already contained in new filename/takename
 
+Project Set List:
++Project Set List will let users play multiple Reaper Projects in sequence.
++Shortcuts
+ - [A] Add new song.
+ - [D] Delete selected song(s) from the set list.
+ - [N] Load next song in the set list.
+ - [P] Move song(s) up in the set list.
+ - [M] Move song(s) down in the set list.
+ - [C] Clear set list.
+ - [L] Load set list.
+ - [S] Save set list.
+ - [O] Auto load next song in the set list.
+ - [Y] If "Auto load" was enabled, "Y" will auto play the next song.
+ - [Enter] Load song. If song is playing and "Auto Load" is enabled, hitting [Enter] will flag the song as the next song to play.
+ - Mouse Drag - Move song(s) in the list.
+ - Windows user will be able to insert multiple songs from the open file dialog.
+ - [Shift+Up / Dn] - Select multiple songs.
+
 !v2.10.0 #1 Featured build (February 6, 2019)
 Mega thanks to nofish and cfillion for their many contributions, and X-Raym for doing the tedious work of merging everything into a release.
 Recommended use of REAPER 5.965.

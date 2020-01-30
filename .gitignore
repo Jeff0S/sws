@@ -4,3 +4,6 @@
 
 # External files
 /vendor
+/.vs
+/CMakeSettings.json
+/RCa12416

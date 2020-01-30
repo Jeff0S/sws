@@ -446,6 +446,17 @@
 #define IDC_ALL_FOREGROUND              1358
 #define IDC_DELTRACKSPROMPT             1359 // snapshots
 #define IDC_PHASE                       1360 // snapshots
+#define IDD_PROJSETLIST                 1361
+#define IDC_SETLIST_INSERT              1362
+#define IDC_SETLIST_DELETE              1363
+#define IDC_SETLIST_MOVE_UP             1364
+#define IDC_SETLIST_MOVE_DOWN           1365
+#define IDC_SETLIST_LOAD                1366
+#define IDC_SETLIST_SAVE                1367
+#define IDC_SETLIST_CLEAR               1368
+#define IDC_SETLIST_NEXT                1369
+#define IDC_SETLIST_ENABLED             1370
+#define IDC_SETLIST_AUTOPLAY            1371
 
 // Next default values for new objects
 // 
