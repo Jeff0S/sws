@@ -34,6 +34,7 @@
 #include "../SnM/SnM_Util.h"
 #include "../reaper/localize.h"
 #include "WDL/projectcontext.h"
+#include <regex>
 
 #define PRI_UP_MSG         0x10000
 #define PRI_DOWN_MSG       0x10001
@@ -86,6 +87,8 @@ static bool g_bAIEnabled = false;
 static bool g_bALEnabled = false;
 static WDL_String g_ACIni;
 static int s_ignore_update;
+static const char g_cRegexPrefix = '$'; // Filter should start with that prefix to be treated as regex
+static const auto g_bmRegexOptions = std::regex_constants::extended | std::regex_constants::icase | std::regex_constants::collate;
 
 
 // Register to marker/region updates
@@ -817,8 +820,20 @@ void ApplyColorRuleToTrack(SWS_RuleItem* rule, bool bDoColors, bool bDoIcons, bo
 					else // Check for name match
 					{
 						char* cName = (char*)GetSetMediaTrackInfo(tr, "P_NAME", NULL);
-						if (cName && stristr(cName, rule->m_str_filter.Get()))
-							bMatch = true;
+						if (cName){
+							if (stristr(cName, rule->m_str_filter.Get())){
+								// Exact match
+								bMatch = true;
+							}
+							else if (strlen(rule->m_str_filter.Get()) > 1 && (rule->m_str_filter.Get())[0] == g_cRegexPrefix){
+								// Regex pattern match
+								const char* sUserPattern = (char*) rule->m_str_filter.Get() + 1; // Chopping the prefix
+								std::regex reUserPattern(sUserPattern, g_bmRegexOptions);
+
+								if (std::regex_match(cName, reUserPattern))
+									bMatch = true;
+							}
+						}
 					}
 				}
 				else if (strcmp(rule->m_str_filter.Get(), cFilterTypes[AC_MASTER]) == 0)
@@ -1069,6 +1084,7 @@ void ApplyColorRuleToMarkerRegion(SWS_RuleItem* _rule, int _flags)
 	int x=0, num, color;
 	bool isRgn;
 	const char* name;
+	const bool isRegex = (strlen(_rule->m_str_filter.Get()) > 1) && ((_rule->m_str_filter.Get())[0] == g_cRegexPrefix);
 
 	PreventUIRefresh(1);
 	if(_rule->m_type & _flags)
@@ -1077,6 +1093,7 @@ void ApplyColorRuleToMarkerRegion(SWS_RuleItem* _rule, int _flags)
 		{
 			if ((!strcmp(cFilterTypes[AC_RGNANY], _rule->m_str_filter.Get()) ||
 				(!strcmp(cFilterTypes[AC_RGNUNNAMED], _rule->m_str_filter.Get()) && (!name || !*name)) ||
+				(name && isRegex && std::regex_match(name, std::regex((char*)_rule->m_str_filter.Get() + 1, g_bmRegexOptions))) ||
 				(name && stristr(name, _rule->m_str_filter.Get())))
 				&&
 				((_flags&AC_REGION && isRgn && _rule->m_type==AC_REGION) ||

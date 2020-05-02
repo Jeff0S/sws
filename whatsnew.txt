@@ -127,6 +127,9 @@ Global notes: (Issue 1170)
 +Internal tweaks (more efficient load/save)
 +Additionally to saving when project is saved, can be saved via notes window context menu (global notes are stored in <REAPER resource path>/SWS_global notes.txt)
 
+Auto color/icon/layout:
++Add regex patterns support in name filters for more flexible filtering. Filters beginning with "$" sign (e.g. "$((gtr)|(guitar)).*lead") are now treated as regular expressions. https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04|Extended POSIX| grammar is used, case-insensitive.
+
 Linux:
 +Added official Linux ARM builds (32-bit and 64-bit)
 +Enable media file tagging features
