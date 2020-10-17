@@ -32,12 +32,15 @@
 #endif
 
 #include "NF_ReaScript.h"
-#include "../SnM/SnM.h"
-#include "../Misc/Analysis.h" // #781
+
+#include "../Breeder/BR_Misc.h" // #974, GetProjectTrackSelectionAction()
 #include "../Breeder/BR_Loudness.h" // #880
-#include "../SnM/SnM_Notes.h" // #755
-#include "../SnM/SnM_Project.h" // #974
+#include "../Misc/Analysis.h" // #781
+#include "../SnM/SnM.h" // ScheduledJob
 #include "../SnM/SnM_Chunk.h" // SNM_FXSummaryParser
+#include "../SnM/SnM_Notes.h" // #755
+#include "../SnM/SnM_Project.h" // #974, GetProjectLoadAction(), GetGlobalStartupAction()
+#include "../SnM/SnM_Util.h" // #974, SNM_NamedCommandLookup(), CheckSwsMacroScriptNumCustomId()
 
 // #781, peak/RMS
 double DoGetMediaItemMaxPeakAndMaxPeakPos(MediaItem* item, double* maxPeakPosOut) // maxPeakPosOut == NULL: peak only
@@ -338,159 +341,159 @@ int NF_Win32_GetSystemMetrics(int nIndex)
 	return GetSystemMetrics(nIndex);
 }
 
-// #974
-/*
-extern WDL_FastString g_globalStartupAction; extern SWSProjConfig<WDL_FastString> g_prjLoadActions;
+// #974, global actions
+enum class GlobalActionTypes {
+	startupAction = 0
+};
 
-// desc == true: return action text, false: return command ID number (native actions) or named command (extension/ReaScript)
-void NF_GetGlobalStartupAction(char* buf, int bufSize, bool desc)
+// wantDesc == true: return action text, false: return command ID number (native actions) or named command (extension/ReaScript)
+void DoGetGlobalAction(char* buf, int bufSize, WDL_FastString* action, bool wantDesc)
 {
-	WDL_FastString fs;
-
-	if (!g_globalStartupAction.Get()) 
+	WDL_FastString str;
+	if (action && SNM_NamedCommandLookup(action->Get()))
 	{
-		if (desc)
-			fs.Set("");
+		if (wantDesc)
+			str.Set(kbd_getTextFromCmd(SNM_NamedCommandLookup(action->Get()), nullptr));	
 		else
-			fs.Set("0");
-
-		snprintf(buf, bufSize, "%s", fs.Get());
-		return;
-	}
-
-	if  (int cmdId = SNM_NamedCommandLookup(g_globalStartupAction.Get())) 
-	{
-		if (desc)
-			fs.Set(kbd_getTextFromCmd(cmdId, NULL));
-		else
-			fs.Set(g_globalStartupAction.Get());
+			str.Set(action->Get());
 	}
 	else
 	{
-		if (desc)
-			fs.Set("");
-		else
-			fs.Set("0");
+		if (!wantDesc)
+			str.Set("0");
 	}
-	snprintf(buf, bufSize, "%s", fs.Get());
+	snprintf(buf, bufSize, "%s", str.Get());
 }
 
-void NF_GetGlobalStartupAction_Desc(char *buf, int bufSize)
+bool DoSetGlobalAction(const char* buf, WDL_FastString* action, GlobalActionTypes actionType)
 {
-	NF_GetGlobalStartupAction(buf, bufSize, true);
-}
-void NF_GetGlobalStartupAction_CmdID(char *buf, int bufSize)
-{
-	NF_GetGlobalStartupAction(buf, bufSize, false);
-}
-
-
-bool NF_SetGlobalStartupAction(const char * buf)
-{
-	if (!g_globalStartupAction.Get())
-		return false;
-		
-	if (int cmdId = SNM_NamedCommandLookup(buf))
+	if (action && SNM_NamedCommandLookup(buf) && !CheckSwsMacroScriptNumCustomId(buf))
 	{
-		// more checks: http://forum.cockos.com/showpost.php?p=1252206&postcount=1618
-		if (int tstNum = CheckSwsMacroScriptNumCustomId(buf))
+		action->Set(buf);
+		switch (actionType)
 		{
-			return false;
-		}
-		else
-		{
-			g_globalStartupAction.Set(buf);
+		case GlobalActionTypes::startupAction:
 			WritePrivateProfileString("Misc", "GlobalStartupAction", buf, g_SNM_IniFn.Get());
-			return true;
+			break;
 		}
+		return true;
+	}
+	return false;
+}
+
+bool DoClearGlobalAction(WDL_FastString* action, GlobalActionTypes actionType)
+{
+	if (action) 
+	{
+		action->Set("");
+		switch (actionType)
+		{
+		case GlobalActionTypes::startupAction:
+			WritePrivateProfileString("Misc", "GlobalStartupAction", nullptr, g_SNM_IniFn.Get());
+			break;
+		}
+		return true;
+	}
+	return false;
+}
+
+// #974, project actions
+// wantDesc == true: return action text, false : return command ID number(native actions) or named command(extension / ReaScript)
+void DoGetProjectAction(char* buf, int bufSize, SWSProjConfig<WDL_FastString>* action, bool wantDesc)
+{
+	WDL_FastString str;
+	if (action && SNM_NamedCommandLookup(action->Get()->Get()))
+	{
+		if (wantDesc)
+			str.Set(kbd_getTextFromCmd(SNM_NamedCommandLookup(action->Get()->Get()), nullptr));
+		else
+			str.Set(action->Get());
 	}
 	else
 	{
-		return false;
+		if (!wantDesc)
+			str.Set("0");
 	}
+	snprintf(buf, bufSize, "%s", str.Get());
+}
+
+bool DoSetProjectAction(const char* buf, SWSProjConfig<WDL_FastString>* action)
+{
+	if (action && SNM_NamedCommandLookup(buf) && !CheckSwsMacroScriptNumCustomId(buf))
+	{
+		action->Get()->Set(buf);
+		return true;
+	}	
+	return false;
+}
+
+bool DoClearProjectAction(SWSProjConfig<WDL_FastString>* action)
+{
+	if (action) {
+		action->Get()->Set("");
+		return true;
+	}
+	return false;
+}
+
+// SnM global startup action
+void NF_GetGlobalStartupAction_Desc(char* descOut, int descOut_sz)
+{
+	DoGetGlobalAction(descOut, descOut_sz, GetGlobalStartupAction(), true);
+}
+void NF_GetGlobalStartupAction_CmdID(char* cmdIdOut, int cmdIdOut_sz)
+{
+	DoGetGlobalAction(cmdIdOut, cmdIdOut_sz, GetGlobalStartupAction(), false);
+}
+
+bool NF_SetGlobalStartupAction(const char* buf)
+{
+	return DoSetGlobalAction(buf, GetGlobalStartupAction(), GlobalActionTypes::startupAction);
 }
 
 bool NF_ClearGlobalStartupAction()
 {
-	if (g_globalStartupAction.Get()) {
-		g_globalStartupAction.Set("");
-		WritePrivateProfileString("Misc", "GlobalStartupAction", NULL, g_SNM_IniFn.Get());
-		return true;
-	}
-	return false;
+	return DoClearGlobalAction(GetGlobalStartupAction(), GlobalActionTypes::startupAction);
 }
 
-
-void NF_GetProjectStartupAction(char* buf, int bufSize, bool desc)
+// SnM project startup action 
+void NF_GetProjectStartupAction_Desc(char * descOut, int descOut_sz)
 {
-	WDL_FastString fs;
-	if (!g_prjLoadActions.Get()->Get())
-	{
-		if (desc)
-			fs.Set("");
-		else
-			fs.Set("0");
-
-		snprintf(buf, bufSize, "%s", fs.Get());
-		return;
-	}
-
-	if (int cmdId = SNM_NamedCommandLookup(g_prjLoadActions.Get()->Get()))
-	{
-		if (desc)
-			fs.Set(kbd_getTextFromCmd(cmdId, NULL));
-		else
-			fs.Set(g_prjLoadActions.Get()->Get());
-	}
-	else
-	{
-		if (desc)
-			fs.Set("");
-		else
-			fs.Set("0");
-	}
-	snprintf(buf, bufSize, "%s", fs.Get());
+	DoGetProjectAction(descOut, descOut_sz, GetProjectLoadAction(), true);
 }
 
-void NF_GetProjectStartupAction_Desc(char *buf, int bufSize)
+void NF_GetProjectStartupAction_CmdID(char * cmdIdOut, int cmdIdOut_sz)
 {
-	NF_GetProjectStartupAction(buf, bufSize, true);
-}
-void NF_GetProjectStartupAction_CmdID(char *buf, int bufSize)
-{
-	NF_GetProjectStartupAction(buf, bufSize, false);
+	DoGetProjectAction(cmdIdOut, cmdIdOut_sz, GetProjectLoadAction(), false);
 }
 
 bool NF_SetProjectStartupAction(const char* buf)
 {
-	if (!g_prjLoadActions.Get())
-		return false;
-
-	if (int cmdId = SNM_NamedCommandLookup(buf))
-	{
-		// more checks: http://forum.cockos.com/showpost.php?p=1252206&postcount=1618
-		if (int tstNum = CheckSwsMacroScriptNumCustomId(buf))
-		{
-			return false;
-		}
-		else
-		{
-			g_prjLoadActions.Get()->Set(buf);
-			return true;
-		}
-	}
-	else
-	{
-		return false;
-	}
+	return DoSetProjectAction(buf, GetProjectLoadAction());
 }
 
 bool NF_ClearProjectStartupAction()
 {
-	if (g_prjLoadActions.Get()) {
-		g_prjLoadActions.Get()->Set("");
-		return true;
-	}
-	return false;
+	return DoClearProjectAction(GetProjectLoadAction());
 }
-*/
+
+// BR Project track selection action
+void NF_GetProjectTrackSelectionAction_Desc(char* descOut, int descOut_sz)
+{
+	DoGetProjectAction(descOut, descOut_sz, GetProjectTrackSelectionAction(), true);
+}
+
+void NF_GetProjectTrackSelectionAction_CmdID(char* descOut, int descOut_sz)
+{
+	DoGetProjectAction(descOut, descOut_sz, GetProjectTrackSelectionAction(), false);
+}
+
+bool NF_SetProjectTrackSelectionAction(const char* buf)
+{
+	return DoSetProjectAction(buf, GetProjectTrackSelectionAction());
+}
+
+bool NF_ClearProjectTrackSelectionAction()
+{
+	return DoClearProjectAction(GetProjectTrackSelectionAction());
+}

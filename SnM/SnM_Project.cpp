@@ -387,6 +387,16 @@ void ShowStartupActions(COMMAND_T* _ct)
 	MessageBox(GetMainHwnd(), msg.Get(), SWS_CMD_SHORTNAME(_ct), MB_OK);
 }
 
+WDL_FastString* GetGlobalStartupAction()
+{
+	return &g_globalAction;
+}
+
+SWSProjConfig<WDL_FastString>* GetProjectLoadAction()
+{
+	return &g_prjActions;
+}
+
 static bool ProcessExtensionLine(const char *line, ProjectStateContext *ctx, bool isUndo, struct project_config_extension_t *reg)
 {
 	LineParser lp(false);
