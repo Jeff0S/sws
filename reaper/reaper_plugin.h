@@ -404,6 +404,7 @@ typedef struct
 #define PCM_SOURCE_EXT_SETSECONDARYSOURCELIST 0x1000B // parm1=(PCM_source**)sourcelist, parm2=list size, parm3=close any existing src not in the list
 #define PCM_SOURCE_EXT_ISOPENEDITOR 0x1000C // returns 1 if this source is currently open in an editor, parm1=1 to close
 #define PCM_SOURCE_EXT_GETITEMCONTEXT 0x10010 // parm1=MediaItem**, parm2=MediaItem_Take**, parm3=MediaTrack**
+#define PCM_SOURCE_EXT_GETBITRATE 0x10012 // parm1=(double*)bitrate, https://forum.cockos.com/showpost.php?p=2376588
 #define PCM_SOURCE_EXT_CONFIGISFILENAME 0x20000
 #define PCM_SOURCE_EXT_GETBPMANDINFO 0x40000 // parm1=pointer to double for bpm. parm2=pointer to double for snap/downbeat offset (seconds).
 #define PCM_SOURCE_EXT_GETNTRACKS 0x80000 // for midi data, returns number of tracks that would have been available
