@@ -47,6 +47,7 @@
 #include "SnM_Util.h"
 #include "SnM_Window.h"
 #include "Misc/TrackSel.h"
+#include "Freeze/TimeState.h"
 #include "Snapshots/Snapshots.h"
 #include "version.h"
 
@@ -762,6 +763,12 @@ static DYN_COMMAND_T s_dynCmdTable[]
 	{ "SWS: Recall snapshot %d", "SWSSNAPSHOT_GET", GetSnapshot, 12, SNM_MAX_DYN_ACTIONS, },
 	{ "SWS: Save as snapshot %d", "SWSSNAPSHOT_SAVE", SaveSnapshot, 12, SNM_MAX_DYN_ACTIONS, },
 	{ "SWS: Select only track %d", "SWS_SEL", SelectTrack, 32, SNM_MAX_DYN_ACTIONS, },
+
+	// save/restore time & loop selection
+	{ "SWS: Save time selection, slot %d", "SWS_SAVETIME", SaveTimeSel, 16, SNM_MAX_DYN_ACTIONS},
+	{ "SWS: Restore time selection, slot %d", "SWS_RESTTIME", RestoreTimeSel, 16, SNM_MAX_DYN_ACTIONS},
+	{ "SWS: Save loop selection, slot %d", "SWS_SAVELOOP", SaveLoopSel, 16, SNM_MAX_DYN_ACTIONS},
+	{ "SWS: Restore loop selection, slot %d", "SWS_RESTLOOP", RestoreLoopSel, 16, SNM_MAX_DYN_ACTIONS},
 
 //!WANT_LOCALIZE_1ST_STRING_END
 

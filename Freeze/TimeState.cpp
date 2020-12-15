@@ -64,7 +64,6 @@ char* TimeSelection::ItemString(char* str, int maxLen)
 
 void SaveTimeSel(int iSlot, bool bIsLoop)
 {
-	// In order?  nah.  Only 10 max at the moment.
 	for (int i = 0; i < g_timeSel.Get()->GetSize(); i++)
 	{
 		TimeSelection* ts = g_timeSel.Get()->Get(i);
@@ -72,22 +71,30 @@ void SaveTimeSel(int iSlot, bool bIsLoop)
 		{
 			delete ts;
 			g_timeSel.Get()->Set(i, new TimeSelection(iSlot, bIsLoop));
+			MarkProjectDirty(nullptr);
 			return;
 		}
 	}
 	// Didn't find one
 	g_timeSel.Get()->Add(new TimeSelection(iSlot, bIsLoop));
+	MarkProjectDirty(nullptr);
 }
 
 void RestoreTimeSel(int iSlot, bool bIsLoop)
 {
+	bool updated = false;
 	for (int i = 0; i < g_timeSel.Get()->GetSize(); i++)
 	{
 		TimeSelection* ts = g_timeSel.Get()->Get(i);
 		if (ts->m_iSlot == iSlot && ts->m_bIsLoop == bIsLoop)
+		{
 			ts->Restore();
+			updated=true;
+		}
 	}
 	UpdateTimeline();
+	if(updated)
+		MarkProjectDirty(nullptr);
 }
 
 void RestoreNext(int* iCur, bool bIsLoop)
@@ -115,9 +122,9 @@ void RestoreNext(int* iCur, bool bIsLoop)
 	RestoreTimeSel(*iCur, bIsLoop);
 }
 
-void SaveTimeSel(COMMAND_T* cs) { SaveTimeSel((int)cs->user, false); }
+void SaveTimeSel(COMMAND_T* cs) { SaveTimeSel((int)cs->user+1, false); }
 void SaveLoopSel(COMMAND_T* cs) { SaveTimeSel((int)cs->user, true);  }
-void RestoreTimeSel(COMMAND_T* cs) { RestoreTimeSel((int)cs->user, false); }
+void RestoreTimeSel(COMMAND_T* cs) { RestoreTimeSel((int)cs->user+1, false); }
 void RestoreLoopSel(COMMAND_T* cs) { RestoreTimeSel((int)cs->user, true); }
-void RestoreTimeNext(COMMAND_T*) { static int iCur = -1; RestoreNext(&iCur, false); }
-void RestoreLoopNext(COMMAND_T*) { static int iCur = -1; RestoreNext(&iCur, true); }
+void RestoreTimeNext(COMMAND_T* cs) { static int iCur = -1; RestoreNext(&iCur, false); }
+void RestoreLoopNext(COMMAND_T* cs) { static int iCur = -1; RestoreNext(&iCur, true); }
