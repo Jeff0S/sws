@@ -500,6 +500,7 @@ static COMMAND_T s_cmdTable[] =
 	{{ DEFACCEL, "SWS/S&M: Region Playlist - Options/Enable shuffle (only in Region Playlist)" }, "S&M_PLAYLIST_OPT_SHUFFLE_ON", SetPlaylistOptionShuffle, NULL, 0},
 	{ { DEFACCEL, "SWS/S&M: Region Playlist - Options/Disable shuffle (only in Region Playlist)" }, "S&M_PLAYLIST_OPT_SHUFFLE_OFF", SetPlaylistOptionShuffle, NULL, 1},
 	{ { DEFACCEL, "SWS/S&M: Region Playlist - Options/Toggle shuffle (only in Region Playlist)" }, "S&M_PLAYLIST_OPT_TGL_SHUFFLE", SetPlaylistOptionShuffle, NULL, -1, IsPlaylistOptionShuffle},
+	{ { DEFACCEL, "SWS/S&M: Region Playlist - Add all regions to current playlist" }, "S&M_PLAYLIST_ADD_ALL_REGIONS", AddAllRegionsToPlaylist, NULL, },
 
 	// Markers & regions ------------------------------------------------------
 	{ { DEFACCEL, "SWS/S&M: Insert marker at edit cursor" }, "S&M_INS_MARKER_EDIT", InsertMarker, NULL, 0},

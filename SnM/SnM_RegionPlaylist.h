@@ -169,5 +169,6 @@ void OpenRegionPlaylist(COMMAND_T*);
 int IsRegionPlaylistDisplayed(COMMAND_T*);
 void ToggleRegionPlaylistLock(COMMAND_T*);
 int IsRegionPlaylistMonitoring(COMMAND_T*);
+void AddAllRegionsToPlaylist(COMMAND_T* = nullptr);
 
 #endif

@@ -874,26 +874,8 @@ void RegionPlaylistWnd::OnCommand(WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		case ADD_ALL_REGIONS_MSG:
-		{
-			int x=0, y, num; bool isRgn, updt=false;
-			while ((y = EnumProjectMarkers2(NULL, x, &isRgn, NULL, NULL, NULL, &num)))
-			{
-				if (isRgn) {
-					RgnPlaylistItem* newItem = new RgnPlaylistItem(MakeMarkerRegionId(num, isRgn));
-					updt |= (GetPlaylist() && GetPlaylist()->Add(newItem) != NULL);
-				}
-				x=y;
-			}
-			if (updt)
-			{
-				Undo_OnStateChangeEx2(NULL, UNDO_PLAYLIST_STR, UNDO_STATE_MISCCFG, -1);
-				PlaylistResync();
-				Update();
-			}
-			else
-				MessageBox(m_hwnd, __LOCALIZE("No region found in project!","sws_DLG_165"), __LOCALIZE("S&M - Error","sws_DLG_165"), MB_OK);
+			AddAllRegionsToPlaylist();
 			break;
-		}
 		default:
 			if (LOWORD(wParam) >= INSERT_REGION_START_MSG && LOWORD(wParam) <= INSERT_REGION_END_MSG)
 			{
@@ -2229,4 +2211,46 @@ void ToggleRegionPlaylistLock(COMMAND_T*) {
 
 int IsRegionPlaylistMonitoring(COMMAND_T*) {
 	return g_monitorMode;
+}
+
+void AddAllRegionsToPlaylist(COMMAND_T *ct)
+{
+	RegionPlaylist *playlist { GetPlaylist() };
+	RegionPlaylistWnd *w { g_rgnplWndMgr.Get() };
+	HWND parent { w && !ct ? w->GetHWND() : GetMainHwnd() };
+
+	if (!playlist) {
+		MessageBox(parent,
+			__LOCALIZE("No region playlist found in project!","sws_DLG_165"),
+			__LOCALIZE("S&M - Error","sws_DLG_165"), MB_OK);
+		return;
+	}
+
+	int x {}, y, num; bool isRgn, updt { false };
+	while ((y = EnumProjectMarkers2(nullptr, x, &isRgn, nullptr, nullptr, nullptr, &num)))
+	{
+		x=y;
+
+		if (!isRgn)
+			continue;
+
+		RgnPlaylistItem *newItem { new RgnPlaylistItem(MakeMarkerRegionId(num, isRgn)) };
+
+		if (GetPlaylist()->Add(newItem))
+			updt = true;
+		else
+			delete newItem;
+	}
+
+	if (!updt) {
+		MessageBox(parent,
+			__LOCALIZE("No region found in project!","sws_DLG_165"),
+			__LOCALIZE("S&M - Error","sws_DLG_165"), MB_OK);
+		return;
+	}
+
+	Undo_OnStateChangeEx2(nullptr, UNDO_PLAYLIST_STR, UNDO_STATE_MISCCFG, -1);
+	PlaylistResync();
+	if (w)
+		w->Update();
 }
