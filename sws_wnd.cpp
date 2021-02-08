@@ -1424,7 +1424,7 @@ bool SWS_ListView::HeaderHitTest(const POINT &point) const
 	// Fixed in REAPER v6.03
 	return ListView_HeaderHitTest(m_hwndList, point);
 #else
-	return point.y <= headerHeight;
+	return point.y >= 0 && point.y <= headerHeight;
 #endif
 }
 
