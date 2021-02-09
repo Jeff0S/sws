@@ -500,6 +500,12 @@ static COMMAND_T s_cmdTable[] =
 	{{ DEFACCEL, "SWS/S&M: Region Playlist - Options/Enable shuffle (only in Region Playlist)" }, "S&M_PLAYLIST_OPT_SHUFFLE_ON", SetPlaylistOptionShuffle, NULL, 0},
 	{ { DEFACCEL, "SWS/S&M: Region Playlist - Options/Disable shuffle (only in Region Playlist)" }, "S&M_PLAYLIST_OPT_SHUFFLE_OFF", SetPlaylistOptionShuffle, NULL, 1},
 	{ { DEFACCEL, "SWS/S&M: Region Playlist - Options/Toggle shuffle (only in Region Playlist)" }, "S&M_PLAYLIST_OPT_TGL_SHUFFLE", SetPlaylistOptionShuffle, NULL, -1, IsPlaylistOptionShuffle},
+	// Accessibility
+	{ { DEFACCEL, "SWS/S&M: Region Playlist - Add playlist (Accessibility)" }, "S&M_PLAYLIST_ADD_PLAYLIST", AddPlaylist, NULL, -1 },
+	{ { DEFACCEL, "SWS/S&M: Region Playlist - Add all regions (Accessibility)" }, "S&M_PLAYLIST_ADD_ALL_RGNS", AddAllRegions, NULL, -1 },
+	{ { DEFACCEL, "SWS/S&M: Region Playlist - Set name of selected region (Accessibility)" }, "S&M_PLAYLIST_SET_NAME_SEL_RGN", SetNameOfSelectedRegion, NULL, -1 },
+	{ { DEFACCEL, "SWS/S&M: Region Playlist - Set loop count of selected region (Accessibility)" }, "S&M_PLAYLIST_SET_LOOP_COUNT_SEL_RGN", SetLoopCountOfSelectedRegion, NULL, -1 },
+	{ { DEFACCEL, "SWS/S&M: Region Playlist - Display context menu (Accessibility)" }, "S&M_PLAYLIST_DISPLAY_CONTEXT_MENU", DisplayContextMenu, NULL, -1 },
 
 	// Markers & regions ------------------------------------------------------
 	{ { DEFACCEL, "SWS/S&M: Insert marker at edit cursor" }, "S&M_INS_MARKER_EDIT", InsertMarker, NULL, 0},

@@ -961,6 +961,13 @@ int RegionPlaylistWnd::OnKey(MSG* _msg, int _iKeyState)
 			case VK_RETURN:
 				OnCommand(PERFORM_MSG, 0);
 				return 1;
+			case VK_TAB: // select first region (if present)
+				if (SWS_ListView* lv = g_rgnplWndMgr.Get()->GetListView()) {
+					SetFocus(lv->GetHWND());
+					if (SWS_ListItem* item = lv->GetListItem(0)) {
+						lv->SelectByItem(item, true);
+					}	
+				}
 		}
 	}
 	return 0;
@@ -2229,4 +2236,153 @@ void ToggleRegionPlaylistLock(COMMAND_T*) {
 
 int IsRegionPlaylistMonitoring(COMMAND_T*) {
 	return g_monitorMode;
+}
+
+// Accessibility
+
+// used for checking Region Playlist window states
+// and displaying error messages when running below actions
+enum class WndStates {
+	windowVisible = 0,
+	editMode, // = not in monitoring mode
+	playlistExists,
+	playlistContainsRegion,
+	regionSelected,
+
+	wndStatesCount // leave as last
+};
+
+void GetWndStates(std::vector<bool> &playlistWindowStates)
+{
+	if (RegionPlaylistWnd* w = g_rgnplWndMgr.Get()) {
+		if (w->IsWndVisible())
+			playlistWindowStates[static_cast<int> (WndStates::windowVisible)] = true;
+
+		if (!g_monitorMode)
+			playlistWindowStates[static_cast<int> (WndStates::editMode)] = true;
+
+		if (GetPlaylist())
+			playlistWindowStates[static_cast<int> (WndStates::playlistExists)] = true;
+
+		if (SWS_ListView* lv = w->GetListView()) {
+			if (lv->GetListItemCount())
+				playlistWindowStates[static_cast<int> (WndStates::playlistContainsRegion)] = true;
+
+			if (lv->EnumSelected(0))
+				playlistWindowStates[static_cast<int> (WndStates::regionSelected)] = true;
+		}
+	}
+}
+
+void DisplayWrongStateErrorMsg(WndStates state)
+{
+	switch (state) {
+		case WndStates::windowVisible:
+			MessageBox(g_hwndParent, __LOCALIZE("Please open Region Playlist window first!", "sws_DLG_165"), __LOCALIZE("S&M - Error", "sws_DLG_165"), MB_OK);
+			break;
+		case WndStates::editMode:
+			MessageBox(g_hwndParent, __LOCALIZE("Please disable monitoring mode first!", "sws_DLG_165"), __LOCALIZE("S&M - Error", "sws_DLG_165"), MB_OK);
+			break;
+		case WndStates::playlistExists:
+			MessageBox(g_hwndParent, __LOCALIZE("Please create a playlist first!", "sws_DLG_165"), __LOCALIZE("S&M - Error", "sws_DLG_165"), MB_OK);
+			break;
+		case WndStates::playlistContainsRegion:
+			MessageBox(g_hwndParent, __LOCALIZE("This playlist doesn't contain any regions!", "sws_DLG_165"), __LOCALIZE("S&M - Error", "sws_DLG_165"), MB_OK);
+			break;
+		case WndStates::regionSelected:
+			MessageBox(g_hwndParent, __LOCALIZE("No region was selected!", "sws_DLG_165"), __LOCALIZE("S&M - Error", "sws_DLG_165"), MB_OK);
+			break;
+		default:
+			MessageBox(g_hwndParent, __LOCALIZE("Unknown error.", "sws_DLG_165"), __LOCALIZE("S&M - Error", "sws_DLG_165"), MB_OK);
+	}
+}
+
+// displays error message and returns false on first WndStates condition not met
+bool CheckWndStates(std::vector<WndStates> const whatToCheck)
+{
+	std::vector<bool> wndStates(static_cast<int> (WndStates::wndStatesCount), false);
+	GetWndStates(wndStates);
+
+	for (std::vector<WndStates>::const_iterator it = whatToCheck.begin(), end = whatToCheck.end(); it != end; ++it) 
+	{
+		if (!wndStates[static_cast<int> (*it)]) {
+			DisplayWrongStateErrorMsg(*it);
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void AddPlaylist(COMMAND_T* = nullptr) 
+{
+	std::vector<WndStates> statesToCheck;
+	statesToCheck.push_back(WndStates::windowVisible);
+	statesToCheck.push_back(WndStates::editMode);
+
+	if (CheckWndStates(statesToCheck))
+		g_rgnplWndMgr.Get()->OnCommand(NEW_PLAYLIST_MSG, 0);
+}
+
+void AddAllRegions(COMMAND_T* = nullptr)
+{
+	std::vector<WndStates> statesToCheck;
+	statesToCheck.push_back(WndStates::windowVisible);
+	statesToCheck.push_back(WndStates::editMode);
+	statesToCheck.push_back(WndStates::playlistExists);
+
+	if (CheckWndStates(statesToCheck)) {
+		int regionsInProjCount = 0;
+		CountProjectMarkers(nullptr, nullptr, &regionsInProjCount);
+		if (regionsInProjCount > 0)
+			g_rgnplWndMgr.Get()->OnCommand(ADD_ALL_REGIONS_MSG, 0);
+		else
+			MessageBox(g_hwndParent, __LOCALIZE("Project doesn't contain any regions!", "sws_DLG_165"), __LOCALIZE("S&M - Error", "sws_DLG_165"), MB_OK);
+	}
+}
+
+enum class RegionColumns {
+	name = 1,
+	loopCount
+};
+
+void EditSelectedRegion(RegionColumns column) 
+{
+	std::vector<WndStates> statesToCheck;
+	statesToCheck.push_back(WndStates::windowVisible);
+	statesToCheck.push_back(WndStates::editMode);
+	statesToCheck.push_back(WndStates::playlistExists);
+	statesToCheck.push_back(WndStates::playlistContainsRegion);
+	statesToCheck.push_back(WndStates::regionSelected);
+	
+	if (CheckWndStates(statesToCheck)) {
+		RegionPlaylistWnd* w = g_rgnplWndMgr.Get();
+		SWS_ListView* lv = w->GetListView();
+
+		RgnPlaylistItem* item = reinterpret_cast<RgnPlaylistItem*> (lv->EnumSelected(0));
+		w->GetListView()->EditListItem(reinterpret_cast<SWS_ListItem*>(item), static_cast<int> (column));
+	}	
+}
+
+void SetNameOfSelectedRegion(COMMAND_T* = nullptr)
+{
+	EditSelectedRegion(RegionColumns::name);
+}
+
+void SetLoopCountOfSelectedRegion(COMMAND_T* = nullptr)
+{
+	EditSelectedRegion(RegionColumns::loopCount);
+}
+
+void DisplayContextMenu(COMMAND_T* = nullptr)
+{
+	std::vector<WndStates> statesToCheck;
+	statesToCheck.push_back(WndStates::windowVisible);
+
+	if (CheckWndStates(statesToCheck)) {
+		// TODO: display context menu at mouse cursor
+		POINT p;
+		GetCursorPos(&p);
+		// ???
+	}
 }

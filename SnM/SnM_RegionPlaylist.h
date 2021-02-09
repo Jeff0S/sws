@@ -170,4 +170,10 @@ int IsRegionPlaylistDisplayed(COMMAND_T*);
 void ToggleRegionPlaylistLock(COMMAND_T*);
 int IsRegionPlaylistMonitoring(COMMAND_T*);
 
+// Accessibility
+void AddPlaylist(COMMAND_T*);
+void AddAllRegions(COMMAND_T*);
+void SetNameOfSelectedRegion(COMMAND_T*);
+void SetLoopCountOfSelectedRegion(COMMAND_T*);
+void DisplayContextMenu(COMMAND_T*);
 #endif
