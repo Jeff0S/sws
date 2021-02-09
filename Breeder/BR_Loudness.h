@@ -40,7 +40,7 @@ public:
 	~BR_LoudnessObject ();
 
 	/* Analyze */
-	bool Analyze (bool integratedOnly, bool doTruePeak, bool doHighPrecisionMode);
+	bool Analyze (bool integratedOnly, bool doTruePeak, bool doHighPrecisionMode, bool doDualMonoMode);
 	void AbortAnalyze ();
 	bool IsRunning ();
 	double GetProgress ();
@@ -84,6 +84,8 @@ public:
 	// see https://github.com/jiixyj/libebur128/issues/93#issuecomment-429043548
 	void SetDoHighPrecisionMode(bool doHighPrecisionMode);
 	bool GetDoHighPrecisionMode();
+	void SetDoDualMonoMode(bool doDualMonoMode);
+	bool GetDoDualMonoMode();
 
 private:
 	struct AudioData
@@ -132,7 +134,7 @@ private:
 	GUID m_guid;
 	double m_integrated, m_truePeak, m_truePeakPos, m_shortTermMax, m_momentaryMax, m_range;
 	double m_progress;
-	bool m_running, m_analyzed, m_killFlag, m_integratedOnly, m_doTruePeak, m_truePeakAnalyzed, m_doHighPrecisionMode;
+	bool m_running, m_analyzed, m_killFlag, m_integratedOnly, m_doTruePeak, m_truePeakAnalyzed, m_doHighPrecisionMode, m_doDualMonoMode;
 	HANDLE m_process;
 	SWS_Mutex m_mutex;
 	vector<double> m_shortTermValues;
@@ -236,8 +238,8 @@ public:
 	void Update (bool updateList = true);
 	void KillNormalizeDlg ();
 	bool GetProperty (int propertySpecifier);
-	enum PropertySpecifier { TIME_SEL_OVER_MAX, DOUBLECLICK_GOTO_TARGET, USING_LU, MIRROR_PROJ_SELECTION, DO_HIGH_PRECISION_MODE };
-	// NF: for setting 'use high precision mode' (or other Loudness options) from actions (or ReaScript in future)
+	enum PropertySpecifier { TIME_SEL_OVER_MAX, DOUBLECLICK_GOTO_TARGET, USING_LU, MIRROR_PROJ_SELECTION, DO_HIGH_PRECISION_MODE, DO_DUAL_MONO_MODE };
+	// NF: for setting 'use high precision mode' / other Loudness options from actions (or ReaScript in future)
 	// returns true if Property is set successfully
 	bool SetProperty (int propertySpecifier, bool newVal); 
 	void LoadProperties();
@@ -280,6 +282,7 @@ protected:
 		bool doTruePeak;
 		bool usingLU;
 		bool doHighPrecisionMode;
+		bool doDualMonoMode;
 		WDL_FastString exportFormat;
 		Properties ();
 		void Load ();
@@ -309,6 +312,7 @@ void NormalizeLoudness (COMMAND_T*);
 void AnalyzeLoudness (COMMAND_T*);
 void ToggleLoudnessPref (COMMAND_T*);
 void ToggleHighPrecisionOption(COMMAND_T*);
+void ToggleDualMonoOption(COMMAND_T*);
 
 // #880
 bool NFDoAnalyzeTakeLoudness_IntegratedOnly(MediaItem_Take*, double* lufsIntegrated);
@@ -323,3 +327,4 @@ int IsNormalizeLoudnessVisible (COMMAND_T*);
 int IsAnalyzeLoudnessVisible (COMMAND_T*);
 int IsLoudnessPrefVisible (COMMAND_T*);
 int IsHighPrecisionOptionEnabled(COMMAND_T*);
+int IsDualMonoOptionEnabled(COMMAND_T*);

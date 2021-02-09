@@ -161,6 +161,7 @@ const int GO_TO_SHORTTERM             = 0xF018;
 const int GO_TO_MOMENTARY             = 0xF019;
 const int GO_TO_TRUE_PEAK             = 0xF01A;
 const int SET_DO_HIGH_PRECISION_MODE  = 0xF01B;
+const int SET_DO_DUAL_MONO_MODE       = 0xF01C;
 
 const int ANALYZE_TIMER     = 1;
 const int REANALYZE_TIMER   = 2;
@@ -201,7 +202,8 @@ m_integratedOnly      (false),
 m_doTruePeak          (true),
 m_truePeakAnalyzed    (false),
 m_process             (NULL),
-m_doHighPrecisionMode (true)
+m_doHighPrecisionMode (true),
+m_doDualMonoMode      (true)
 {
 }
 
@@ -223,7 +225,8 @@ m_integratedOnly      (false),
 m_doTruePeak          (true),
 m_truePeakAnalyzed    (false),
 m_process             (NULL),
-m_doHighPrecisionMode (true)
+m_doHighPrecisionMode (true),
+m_doDualMonoMode      (true)
 {
 	this->CheckSetAudioData();
 }
@@ -246,7 +249,8 @@ m_integratedOnly      (false),
 m_doTruePeak          (true),
 m_truePeakAnalyzed    (false),
 m_process             (NULL),
-m_doHighPrecisionMode (true)
+m_doHighPrecisionMode (true),
+m_doDualMonoMode      (true)
 {
 	this->CheckSetAudioData();
 }
@@ -258,12 +262,13 @@ BR_LoudnessObject::~BR_LoudnessObject ()
 		DestroyAudioAccessor(this->GetAudioData().audio);
 }
 
-bool BR_LoudnessObject::Analyze (bool integratedOnly, bool doTruePeak, bool doHighPrecisionMode)
+bool BR_LoudnessObject::Analyze (bool integratedOnly, bool doTruePeak, bool doHighPrecisionMode, bool doDualMonoMode)
 {
 	this->AbortAnalyze();
 	this->SetIntegratedOnly(integratedOnly);
 	this->SetDoTruePeak(doTruePeak);
 	this->SetDoHighPrecisionMode(doHighPrecisionMode);
+	this->SetDoDualMonoMode(doDualMonoMode);
 
 	// Is audio data still valid?
 	if (this->CheckSetAudioData())
@@ -434,7 +439,7 @@ void BR_LoudnessObject::SaveObject (ProjectStateContext* ctx)
 		ctx->AddLine(PROJ_OBJECT_KEY);
 		ctx->AddLine("%s %d %s", PROJ_OBJECT_KEY_TARGET, (this->GetTrack() ? 1 : 0), tmp);
 		ctx->AddLine("%s %lf %lf %lf %lf %lf %lf", PROJ_OBJECT_KEY_MEASUREMENTS, integrated, range, truePeak, truePeakPos, shortTermMax, momentaryMax);
-		ctx->AddLine("%s %d %d %d %d %d %d", PROJ_OBJECT_KEY_STATUS, this->GetDoTruePeak(), this->GetTruePeakAnalyzeStatus(), this->GetAnalyzedStatus(), this->GetIntegratedOnly(), VERSION, this->GetDoHighPrecisionMode());
+		ctx->AddLine("%s %d %d %d %d %d %d %d", PROJ_OBJECT_KEY_STATUS, this->GetDoTruePeak(), this->GetTruePeakAnalyzeStatus(), this->GetAnalyzedStatus(), this->GetIntegratedOnly(), VERSION, this->GetDoHighPrecisionMode(), this->GetDoDualMonoMode());
 
 		int count = 0;
 		WDL_FastString string;
@@ -472,7 +477,7 @@ void BR_LoudnessObject::SaveObject (ProjectStateContext* ctx)
 
 bool BR_LoudnessObject::RestoreObject (ProjectStateContext* ctx)
 {
-	bool doTruePeak = false, truePeakAnalyzed = false, analyzed = false, integratedOnly = false, doHighPrecision = false;
+	bool doTruePeak = false, truePeakAnalyzed = false, analyzed = false, integratedOnly = false, doHighPrecision = false, doDualMono = false;
 	int version = VERSION;
 
 	double integrated   = NEGATIVE_INF;
@@ -516,6 +521,7 @@ bool BR_LoudnessObject::RestoreObject (ProjectStateContext* ctx)
 			integratedOnly   = !!lp.gettoken_int(4);
 			version          = lp.gettoken_int(5);
 			doHighPrecision  = !!lp.gettoken_int(6);
+			doDualMono       = !!lp.gettoken_int(7);
 		}
 		else if (!strcmp(lp.gettoken_str(0), PROJ_OBJECT_KEY_SHORT_TERM))
 		{
@@ -555,6 +561,7 @@ bool BR_LoudnessObject::RestoreObject (ProjectStateContext* ctx)
 		this->SetAnalyzedStatus(((version == VERSION) ? analyzed : false));
 		this->SetIntegratedOnly(integratedOnly);
 		this->SetDoHighPrecisionMode(doHighPrecision);
+		this->SetDoDualMonoMode(doDualMono);
 
 		return true;
 	}
@@ -1019,6 +1026,7 @@ unsigned WINAPI BR_LoudnessObject::AnalyzeData (void* loudnessObject)
 	const bool integratedOnly      = _this->GetIntegratedOnly();
 	const bool doTruePeak          = _this->GetDoTruePeak();
 	const bool doHighPrecisionMode = _this->GetDoHighPrecisionMode() && !integratedOnly;
+	const bool doDualMonoMode      = _this->GetDoDualMonoMode();
 
 	/*
 	NF: fix for wrong results when analyzing item, item is not at pos 0.0 and contains take vol. env.
@@ -1043,10 +1051,23 @@ unsigned WINAPI BR_LoudnessObject::AnalyzeData (void* loudnessObject)
 	{
 		// Mono channel modes
 		if (data.channelMode <= 66)
-		{
-			ebur128_set_channel(loudnessState, 0, EBUR128_LEFT);
-			for (int i = 1; i <= data.channels; ++i)
-				ebur128_set_channel(loudnessState, i, EBUR128_UNUSED);
+		{	
+			if (doDualMonoMode) {
+				// Actually there's a check in ebur128_set_channel() for dual mono mode:
+				// if ebur128_init() is called with channels > 1 than dual mono mode is disabled.
+				// But it's ok because if source channels > 1 and set to mono channel modes,
+				// AudioAccessor returns dual mono anyway (what we want)
+				// so we can use stereo channel map in this case
+				ebur128_set_channel(loudnessState, 0, EBUR128_DUAL_MONO);
+				ebur128_set_channel(loudnessState, 1, EBUR128_RIGHT);
+				for (int i = 2; i <= data.channels; ++i)
+					ebur128_set_channel(loudnessState, i, EBUR128_UNUSED);
+			}
+			else {
+				ebur128_set_channel(loudnessState, 0, EBUR128_LEFT);
+				for (int i = 1; i <= data.channels; ++i)
+					ebur128_set_channel(loudnessState, i, EBUR128_UNUSED);
+			}
 		}
 		// Stereo channel modes
 		else
@@ -1057,6 +1078,14 @@ unsigned WINAPI BR_LoudnessObject::AnalyzeData (void* loudnessObject)
 				ebur128_set_channel(loudnessState, i, EBUR128_UNUSED);
 		}
 	}
+	// Dual mono mode for mono takes
+	else if (doDualMonoMode && _this->m_take && data.channels == 1)
+	{
+		ebur128_set_channel(loudnessState, 0, EBUR128_DUAL_MONO);
+		for (int i = 1; i <= data.channels; ++i)
+			ebur128_set_channel(loudnessState, i, EBUR128_UNUSED);
+	}
+	// Normal channel mode
 	else
 	{
 		ebur128_set_channel(loudnessState, 0, EBUR128_LEFT);
@@ -1403,6 +1432,19 @@ bool BR_LoudnessObject::GetDoHighPrecisionMode()
 {
 	SWS_SectionLock lock(&m_mutex);
 	return m_doHighPrecisionMode;
+}
+
+void BR_LoudnessObject::SetDoDualMonoMode(bool doDualMonoMode)
+{
+	SWS_SectionLock lock(&m_mutex);
+	m_doDualMonoMode = doDualMonoMode;
+	
+}
+
+bool BR_LoudnessObject::GetDoDualMonoMode()
+{
+	SWS_SectionLock lock(&m_mutex);
+	return m_doDualMonoMode;
 }
 
 void BR_LoudnessObject::SetTruePeakAnalyzed (bool analyzed)
@@ -2098,8 +2140,9 @@ static WDL_DLGRET NormalizeProgressProc (HWND hwnd, UINT uMsg, WPARAM wParam, LP
 						doHighPrecisionMode = !!IsHighPrecisionOptionEnabled(NULL);
 
 					}
-					
-					s_currentItem->Analyze(s_normalizeData->quickMode, false, doHighPrecisionMode);
+
+					bool doDualMonoMode = !!IsDualMonoOptionEnabled(NULL);
+					s_currentItem->Analyze(s_normalizeData->quickMode, false, doHighPrecisionMode, doDualMonoMode);
 					s_analyzeInProgress = true;
 				}
 				else
@@ -2285,6 +2328,7 @@ bool BR_AnalyzeLoudnessWnd::GetProperty (int propertySpecifier)
 		case USING_LU:                return m_properties.usingLU;
 		case MIRROR_PROJ_SELECTION:   return m_properties.mirrorProjSelection;
 		case DO_HIGH_PRECISION_MODE:  return m_properties.doHighPrecisionMode;
+		case DO_DUAL_MONO_MODE:       return m_properties.doDualMonoMode;
 	}
 	return false;
 }
@@ -2298,6 +2342,7 @@ bool BR_AnalyzeLoudnessWnd::SetProperty(int propertySpecifier, bool newVal)
 		// case USING_LU:                m_properties.usingLU = newVal; return true;
 		// case MIRROR_PROJ_SELECTION:   m_properties.mirrorProjSelection = newVal; return true;
 		case DO_HIGH_PRECISION_MODE:     m_properties.doHighPrecisionMode = newVal; return true;
+		case DO_DUAL_MONO_MODE:          m_properties.doDualMonoMode      = newVal; return true;
 	}
 	return false;
 }
@@ -3393,6 +3438,14 @@ void BR_AnalyzeLoudnessWnd::OnCommand (WPARAM wParam, LPARAM lParam)
 		}
 		break;
 
+		case SET_DO_DUAL_MONO_MODE:
+		{
+			m_properties.doDualMonoMode = !m_properties.doDualMonoMode;
+			this->ClearList();
+			RefreshToolbar(NamedCommandLookup("_BR_NF_TOGGLE_LOUDNESS_DUAL_MONO"));
+		}
+		break;
+
 		case SET_UNIT_LUFS:
 		{
 			m_properties.usingLU = false;
@@ -3576,7 +3629,7 @@ void BR_AnalyzeLoudnessWnd::OnTimer (WPARAM wParam)
 				if ((s_currentObject = m_analyzeQueue.Get(0)))
 				{
 					s_currentObjectLen = s_currentObject->GetAudioLength();
-					s_currentObject->Analyze(false, m_properties.doTruePeak, m_properties.doHighPrecisionMode);
+					s_currentObject->Analyze(false, m_properties.doTruePeak, m_properties.doHighPrecisionMode, m_properties.doDualMonoMode);
 					m_analyzeInProgress = true;
 				}
 				else
@@ -3628,7 +3681,7 @@ void BR_AnalyzeLoudnessWnd::OnTimer (WPARAM wParam)
 				if ((s_currentObject = m_reanalyzeQueue.Get(0)))
 				{
 					s_currentObjectLen = s_currentObject->GetAudioLength();
-					s_currentObject->Analyze(false, m_properties.doTruePeak, m_properties.doHighPrecisionMode);
+					s_currentObject->Analyze(false, m_properties.doTruePeak, m_properties.doHighPrecisionMode, m_properties.doDualMonoMode);
 					m_analyzeInProgress = true;
 				}
 				else
@@ -3799,6 +3852,7 @@ HMENU BR_AnalyzeLoudnessWnd::OnContextMenu (int x, int y, bool* wantDefaultItems
 
 		AddToMenu((button ? menu : optionsMenu), __LOCALIZE("Measure true peak (slower)", "sws_DLG_174"), SET_DO_TRUE_PEAK, -1, false, m_properties.doTruePeak ?  MF_CHECKED : MF_UNCHECKED);
 		AddToMenu((button ? menu : optionsMenu), __LOCALIZE("Use high precision mode (slower)", "sws_DLG_174"), SET_DO_HIGH_PRECISION_MODE, -1, false, m_properties.doHighPrecisionMode ? MF_CHECKED : MF_UNCHECKED);
+		AddToMenu((button ? menu : optionsMenu), __LOCALIZE("Use dual mono mode for mono takes/channel modes", "sws_DLG_174"), SET_DO_DUAL_MONO_MODE, -1, false, m_properties.doDualMonoMode ? MF_CHECKED : MF_UNCHECKED);
 		AddToMenu((button ? menu : optionsMenu), __LOCALIZE("Analyze after normalizing", "sws_DLG_174"), SET_ANALYZE_ON_NORMALIZE, -1, false, m_properties.analyzeOnNormalize ?  MF_CHECKED : MF_UNCHECKED);
 		AddToMenu((button ? menu : optionsMenu), __LOCALIZE("Clear list when analyzing", "sws_DLG_174"), SET_CLEAR_ON_ANALYZE, -1, false, m_properties.clearAnalyzed ?  MF_CHECKED : MF_UNCHECKED);
 		AddToMenu((button ? menu : optionsMenu), __LOCALIZE("Clear envelope when creating loudness graph", "sws_DLG_174"), SET_CLEAR_ENVELOPE, -1, false, m_properties.clearEnvelope ?  MF_CHECKED : MF_UNCHECKED);
@@ -3853,7 +3907,8 @@ clearEnvelope         (true),
 clearAnalyzed         (true),
 doTruePeak            (true),
 usingLU               (false),
-doHighPrecisionMode   (true)
+doHighPrecisionMode   (true),
+doDualMonoMode        (true)
 {
 }
 
@@ -3874,6 +3929,7 @@ void BR_AnalyzeLoudnessWnd::Properties::Load ()
 	doTruePeak            = (lp.getnumtokens() > 7) ? !!lp.gettoken_int(7) : false;
 	usingLU               = (lp.getnumtokens() > 8) ? !!lp.gettoken_int(8) : false;
 	doHighPrecisionMode   = (lp.getnumtokens() > 9) ? !!lp.gettoken_int(9) : false;
+	doDualMonoMode        = (lp.getnumtokens() > 10) ? !!lp.gettoken_int(10) : false;
 
 	GetPrivateProfileString("SWS", EXPORT_FORMAT_KEY, "$id - $target: $integrated, Range: $range, True peak: $truepeak", tmp, sizeof(tmp), get_ini_file());
 	exportFormat.Set(tmp);
@@ -3891,9 +3947,10 @@ void BR_AnalyzeLoudnessWnd::Properties::Save ()
 	int doTruePeakInt            = doTruePeak;
 	int usingLUInt               = usingLU;
 	int doHighPrecisionModeInt   = doHighPrecisionMode;
+	int doDualMonoModeInt        = doDualMonoMode;
 
 	char tmp[512];
-	snprintf(tmp, sizeof(tmp), "%d %d %d %d %d %d %d %d %d %d", analyzeTracksInt, analyzeOnNormalizeInt, mirrorProjSelectionInt, doubleClickGoToTargetInt, timeSelOverMaxInt, clearEnvelopeInt, clearAnalyzedInt, doTruePeakInt, usingLUInt, doHighPrecisionModeInt);
+	snprintf(tmp, sizeof(tmp), "%d %d %d %d %d %d %d %d %d %d %d", analyzeTracksInt, analyzeOnNormalizeInt, mirrorProjSelectionInt, doubleClickGoToTargetInt, timeSelOverMaxInt, clearEnvelopeInt, clearAnalyzedInt, doTruePeakInt, usingLUInt, doHighPrecisionModeInt, doDualMonoModeInt);
 	WritePrivateProfileString("SWS", LOUDNESS_KEY, tmp, get_ini_file());
 
 	WritePrivateProfileString("SWS", EXPORT_FORMAT_KEY, exportFormat.Get(), get_ini_file());
@@ -4131,6 +4188,18 @@ void ToggleHighPrecisionOption(COMMAND_T* ct)
 	RefreshToolbar(NamedCommandLookup("_BR_NF_TOGGLE_LOUDNESS_HIGH_PREC"));
 }
 
+void ToggleDualMonoOption(COMMAND_T* ct)
+{
+	bool isDualMonoOptEnabled = !!IsDualMonoOptionEnabled(NULL);
+
+	BR_AnalyzeLoudnessWnd* dialog = g_loudnessWndManager.Get();
+	dialog->SetProperty(BR_AnalyzeLoudnessWnd::DO_DUAL_MONO_MODE, !isDualMonoOptEnabled);
+	dialog->SaveProperties();
+	dialog->ClearList();
+
+	RefreshToolbar(NamedCommandLookup("_BR_NF_TOGGLE_LOUDNESS_DUAL_MONO"));
+}
+
 /******************************************************************************
 * Toggle states                                                               *
 ******************************************************************************/
@@ -4166,6 +4235,23 @@ int IsHighPrecisionOptionEnabled(COMMAND_T* ct)
 	}
 
 	return isHighPrecOptEnabled;
+}
+
+int IsDualMonoOptionEnabled(COMMAND_T* ct)
+{
+	bool isDualMonoOptEnabled = false;
+	if (g_loudnessWndManager.Get())
+		isDualMonoOptEnabled = g_loudnessWndManager.Get()->GetProperty(BR_AnalyzeLoudnessWnd::DO_DUAL_MONO_MODE);
+	else
+	{
+		if (BR_AnalyzeLoudnessWnd * dialog = g_loudnessWndManager.Create())
+		{
+			dialog->LoadProperties();
+			isDualMonoOptEnabled = dialog->GetProperty(BR_AnalyzeLoudnessWnd::DO_DUAL_MONO_MODE);
+		}
+	}
+
+	return isDualMonoOptEnabled;
 }
 
 
@@ -4287,7 +4373,7 @@ static WDL_DLGRET NFAnalyzeLUFSProgressProc(HWND hwnd, UINT uMsg, WPARAM wParam,
 				if (!s_normalizeData->quickMode)
 					wantHighPrecisionMode = true;
 
-				s_currentItem->Analyze(s_normalizeData->quickMode, s_normalizeData->items->Get(s_currentItemId)->GetDoTruePeak(), wantHighPrecisionMode ? s_normalizeData->items->Get(s_currentItemId)->GetDoHighPrecisionMode() : false);
+				s_currentItem->Analyze(s_normalizeData->quickMode, s_normalizeData->items->Get(s_currentItemId)->GetDoTruePeak(), wantHighPrecisionMode ? s_normalizeData->items->Get(s_currentItemId)->GetDoHighPrecisionMode() : false, s_normalizeData->items->Get(s_currentItemId)->GetDoDualMonoMode());
 
 				s_analyzeInProgress = true;
 			}
