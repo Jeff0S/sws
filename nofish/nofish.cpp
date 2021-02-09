@@ -423,6 +423,32 @@ bool NF_IsObeyTrackHeightLockEnabled()
 	return IsObeyTrackHeightLockEnabled();
 }
 
+void TestWndControlIDs(COMMAND_T* ct = nullptr)
+{
+	ShowConsoleMsg("");
+	HWND ME = MIDIEditor_GetActive();
+	if (!ME) {
+		ShowConsoleMsg("Please open MIDI editor!\nTest cancelled...");
+		return;
+	}
+	else {
+		int errors = 0;
+		if (GetArrangeWnd() != GetArrangeWnd_new())
+			errors += 1;
+		if (GetRulerWndAlt() != GetRulerWndAlt_new())
+			errors += 1;
+		if (GetNotesView(ME) != GetNotesView_new(ME))
+			errors += 1;
+		if (GetPianoView(ME) != GetPianoView_new(ME))
+			errors += 1;
+
+		if (errors == 0)
+			ShowConsoleMsg("Test passed!");
+		else
+			ShowConsoleMsg("Test failed!");
+	}
+}
+
 //////////////////////////////////////////////////////////////////
 //                                                              //
 // Register commands                                            //
@@ -461,6 +487,8 @@ static COMMAND_T g_commandTable[] =
 
 	// toggle Xenakios track height actions and SWS vertical zoom actions obey track height lock
 	{ { DEFACCEL, "SWS/NF: Toggle obey track height lock in vertical zoom and track height actions" }, "NF_TOGGLE_OBEY_TRACK_HEIGHT_LOCK", ToggleObeyTrackHeightLock, NULL, 0, IsObeyTrackHeightLockEnabled},
+
+	{ { DEFACCEL, "SWS/NF: (temp) Test Window control IDs" }, "NF_Test_Wnd_Ctrl_IDs", TestWndControlIDs, NULL },
 
 	//!WANT_LOCALIZE_1ST_STRING_END
 

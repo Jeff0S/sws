@@ -2570,6 +2570,17 @@ HWND FindFloatingToolbarWndByName (const char* toolbarName)
 		}
 }
 
+// IDs of child windows are the same on all platforms
+// https://forum.cockos.com/showpost.php?p=2388026&postcount=5
+enum WndControlIDs               // caption:
+{
+	main_arrange   = 0x000003E8, // trackview
+	main_ruler     = 0x000003ED, // timeline
+
+	midi_notesView = 0x000003E9, // midiview
+	midi_pianoView = 0x000003EB  // midipianoview
+};
+
 HWND GetArrangeWnd ()
 {
 	static HWND s_hwnd = NULL; /* More efficient and Justin says it's safe: http://askjf.com/index.php?q=2653s */
@@ -2606,6 +2617,14 @@ HWND GetArrangeWnd ()
 	return s_hwnd;
 }
 
+HWND GetArrangeWnd_new()
+{
+	static HWND s_hwnd = nullptr; /* More efficient and Justin says it's safe: http://askjf.com/index.php?q=2653s */
+	if (!s_hwnd)
+		s_hwnd = GetDlgItem(g_hwndParent, WndControlIDs::main_arrange);
+	return s_hwnd;
+}
+
 HWND GetRulerWndAlt ()
 {
 	static HWND s_hwnd = NULL; /* More efficient and Justin says it's safe: http://askjf.com/index.php?q=2653s */
@@ -2638,6 +2657,14 @@ HWND GetRulerWndAlt ()
 			return GetWindow(GetArrangeWnd(), GW_HWNDNEXT);
 		#endif
 	}
+	return s_hwnd;
+}
+
+HWND GetRulerWndAlt_new()
+{
+	static HWND s_hwnd = nullptr; /* More efficient and Justin says it's safe: http://askjf.com/index.php?q=2653s */
+	if (!s_hwnd)
+		s_hwnd = GetDlgItem(g_hwndParent, WndControlIDs::main_ruler);
 	return s_hwnd;
 }
 
@@ -2833,6 +2860,14 @@ HWND GetNotesView (HWND midiEditor)
 		return NULL;
 }
 
+HWND GetNotesView_new(HWND midiEditor)
+{
+	if (MIDIEditor_GetMode(midiEditor) != -1)
+		return GetDlgItem(midiEditor, WndControlIDs::midi_notesView);
+	else
+		return nullptr;
+}
+
 HWND GetPianoView (HWND midiEditor)
 {
 	if (MIDIEditor_GetMode(midiEditor) != -1)
@@ -2854,6 +2889,14 @@ HWND GetPianoView (HWND midiEditor)
 	}
 	else
 		return NULL;
+}
+
+HWND GetPianoView_new(HWND midiEditor)
+{
+	if (MIDIEditor_GetMode(midiEditor) != -1)
+		return GetDlgItem(midiEditor, WndControlIDs::midi_pianoView);
+	else
+		return nullptr;
 }
 
 HWND GetTrackView (HWND midiEditor)
