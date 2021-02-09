@@ -156,24 +156,34 @@ void SNM_ClearSelectedTracks(ReaProject* _proj, bool _withMaster)
 ///////////////////////////////////////////////////////////////////////////////
 
 WDL_FastString g_trackGrpClipboard;
+WDL_FastString g_trackGrpClipboard_high; // track groups 33 to 64, v5.70+
 
 void CopyCutTrackGrouping(COMMAND_T* _ct)
 {
 	int updates = 0;
 	bool copyDone = false;
 	g_trackGrpClipboard.Set(""); // reset "clipboard"
+	g_trackGrpClipboard_high.Set("");
 	for (int i=0; i <= GetNumTracks(); i++) // incl. master
 	{
 		MediaTrack* tr = CSurf_TrackFromID(i, false);
 		if (tr && *(int*)GetSetMediaTrackInfo(tr, "I_SELECTED", NULL))
 		{
 			SNM_ChunkParserPatcher p(tr);
-			if (!copyDone)
+			if (!copyDone) 
+			{
 				copyDone = (p.Parse(SNM_GET_SUBCHUNK_OR_LINE, 1, "TRACK", "GROUP_FLAGS", 0, 0, &g_trackGrpClipboard, NULL, "MAINSEND") > 0);
+				copyDone = (p.Parse(SNM_GET_SUBCHUNK_OR_LINE, 1, "TRACK", "GROUP_FLAGS_HIGH", 0, 0, &g_trackGrpClipboard_high, NULL, "MAINSEND") > 0) || copyDone;
+			}
 
 			// cut (for all selected tracks)
 			if ((int)_ct->user)
+			{
 				updates += p.RemoveLines("GROUP_FLAGS", true); // brutal removing ok: "GROUP_FLAGS" is not part of freeze data
+				updates += p.RemoveLines("GROUP_FLAGS_HIGH", true); 
+				if (updates) 
+					p.IncUpdates();
+			}
 			// single copy: the 1st found track grouping
 			else if (copyDone)
 				break;
@@ -193,10 +203,13 @@ void PasteTrackGrouping(COMMAND_T* _ct)
 		{
 			SNM_ChunkParserPatcher p(tr);
 			updates += p.RemoveLines("GROUP_FLAGS", true); // brutal removing ok: "GROUP_FLAGS" is not part of freeze data
+			updates += p.RemoveLines("GROUP_FLAGS_HIGH", true); 
 			int patchPos = p.Parse(SNM_GET_CHUNK_CHAR, 1, "TRACK", "TRACKHEIGHT", 0, 0, NULL, NULL, "MAINSEND");
 			if (patchPos > 0)
 			{
-				p.GetChunk()->Insert(g_trackGrpClipboard.Get(), --patchPos);
+				WDL_FastString* chunk = p.GetChunk();
+				chunk->Insert(g_trackGrpClipboard_high.Get(), patchPos-1);
+				chunk->Insert(g_trackGrpClipboard.Get(), patchPos-1);
 				p.IncUpdates(); // as we're directly working on the cached chunk..
 				updates++;
 			}
@@ -215,6 +228,9 @@ void RemoveTrackGrouping(COMMAND_T* _ct)
 		if (tr && *(int*)GetSetMediaTrackInfo(tr, "I_SELECTED", NULL)) {
 			SNM_ChunkParserPatcher p(tr);
 			updates += p.RemoveLines("GROUP_FLAGS", true); // brutal removing ok: "GROUP_FLAGS" is not part of freeze data
+			updates += p.RemoveLines("GROUP_FLAGS_HIGH", true);
+			if (updates) 
+				p.IncUpdates();
 		}
 	}
 	if (updates)
@@ -225,7 +241,7 @@ bool GetDefaultGroupFlags(WDL_FastString* _line, int _group)
 {
 	if (_line && _group >= 0 && _group < SNM_MAX_TRACK_GROUPS)
 	{
-		double grpMask = pow(2.0, _group*1.0);
+		double grpMask = pow(2.0, _group < 32 ?_group*1.0 : (static_cast<double>(_group)-32)*1.0);
 		char grpDefault[SNM_MAX_CHUNK_LINE_LENGTH] = "";
 		GetPrivateProfileString("REAPER", "tgrpdef", "", grpDefault, sizeof(grpDefault), get_ini_file());
 		WDL_FastString defFlags(grpDefault);
@@ -234,7 +250,10 @@ bool GetDefaultGroupFlags(WDL_FastString* _line, int _group)
 			defFlags.Append("0");
 		}
 
-		_line->Set("GROUP_FLAGS ");
+		if (_group < 32)
+			_line->Set("GROUP_FLAGS ");
+		else
+			_line->Set("GROUP_FLAGS_HIGH ");
 		LineParser lp(false);
 		if (!lp.parse(defFlags.Get())) {
 			for (int i=0; i < lp.getnumtokens(); i++) {
@@ -261,7 +280,10 @@ bool SetTrackGroup(int _group)
 			if (tr && *(int*)GetSetMediaTrackInfo(tr, "I_SELECTED", NULL))
 			{
 				SNM_ChunkParserPatcher p(tr);
-				updates += p.RemoveLine("TRACK", "GROUP_FLAGS", 1, 0, "TRACKHEIGHT");
+				if (_group < 32)
+					updates += p.RemoveLine("TRACK", "GROUP_FLAGS", 1, 0, "TRACKHEIGHT");
+				else
+					updates += p.RemoveLine("TRACK", "GROUP_FLAGS_HIGH", 1, 0, "TRACKHEIGHT");
 				int pos = p.Parse(SNM_GET_CHUNK_CHAR, 1, "TRACK", "TRACKHEIGHT", 0, 0, NULL, NULL, "INQ");
 				if (pos > 0) {
 					pos--; // see SNM_ChunkParserPatcher..
@@ -286,14 +308,29 @@ int FindFirstUnusedGroup()
 		{
 			SNM_ChunkParserPatcher p(tr);
 			WDL_FastString grpLine;
+			// groups 1 to 32
 			if (p.Parse(SNM_GET_SUBCHUNK_OR_LINE, 1, "TRACK", "GROUP_FLAGS", 0, 0, &grpLine, NULL, "TRACKHEIGHT"))
 			{
 				LineParser lp(false);
 				if (!lp.parse(grpLine.Get())) {
 					for (int j=1; j < lp.getnumtokens(); j++) { // skip 1st token GROUP_FLAGS
 						int val = lp.gettoken_int(j);
-						for (int k=0; k < SNM_MAX_TRACK_GROUPS; k++) {
+						for (int k=0; k < 32; k++) {
 							int grpMask = int(pow(2.0, k*1.0));
+							grp[k] |= ((val & grpMask) == grpMask);
+						}
+					}
+				}
+			}
+			// groups 33 to 64
+			if (p.Parse(SNM_GET_SUBCHUNK_OR_LINE, 1, "TRACK", "GROUP_FLAGS_HIGH", 0, 0, &grpLine, NULL, "TRACKHEIGHT"))
+			{
+				LineParser lp(false);
+				if (!lp.parse(grpLine.Get())) {
+					for (int j = 1; j < lp.getnumtokens(); j++) {
+						int val = lp.gettoken_int(j);
+						for (int k = 32; k < SNM_MAX_TRACK_GROUPS; k++) {
+							int grpMask = int(pow(2.0, (static_cast<double>(k)-32)*1.0));
 							grp[k] |= ((val & grpMask) == grpMask);
 						}
 					}

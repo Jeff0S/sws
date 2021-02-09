@@ -143,7 +143,7 @@
 #define SNM_MAX_HW_OUTS            8
 #define SNM_MAX_CC_LANE_ID         167 // v5pre11
 #define SNM_MAX_CC_LANES_LEN       4096
-#define SNM_MAX_TRACK_GROUPS       32
+#define SNM_MAX_TRACK_GROUPS       64
 #define SNM_MAX_CUE_BUSS_CONFS     8
 //#define SNM_MAX_TAKES              1024
 #define SNM_MAX_FX                 128
