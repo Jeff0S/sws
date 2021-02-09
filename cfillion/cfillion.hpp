@@ -52,5 +52,5 @@ bool CF_GetMediaSourceOnline(PCM_source *);
 void CF_SetMediaSourceOnline(PCM_source *, bool set);
 bool CF_GetMediaSourceMetadata(PCM_source *, const char *name, char *buf, int bufSize);
 bool CF_GetMediaSourceRPP(PCM_source *source, char *buf, const int bufSize);
-int CF_EnumMediaSourceCues(PCM_source *source, const int index, double *time, double *endTime, bool *isRegion, char *name, const int nameSize);
+int CF_EnumMediaSourceCues(PCM_source *source, const int index, double *time, double *endTime, bool *isRegion, char *name, const int nameSize, bool *isChapter);
 bool CF_ExportMediaSource(PCM_source *source, const char *file);

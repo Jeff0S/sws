@@ -349,7 +349,7 @@ bool CF_GetMediaSourceRPP(PCM_source *source, char *buf, const int bufSize)
 }
 
 int CF_EnumMediaSourceCues(PCM_source *source, const int index, double *time,
-  double *endTime, bool *isRegion, char *name, const int nameSize)
+  double *endTime, bool *isRegion, char *name, const int nameSize, bool *isChapter)
 {
   if(!source)
     return 0;
@@ -368,6 +368,9 @@ int CF_EnumMediaSourceCues(PCM_source *source, const int index, double *time,
   if(name && cue.m_name)
     snprintf(name, nameSize, "%s", cue.m_name);
 
+  if (isChapter)
+      *isChapter = cue.m_flags & 4;
+ 
   return add ? index + add : 0;
 }
 
