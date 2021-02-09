@@ -181,6 +181,14 @@ void HideColorChooser();
 void SetMenuItemSwatch(HMENU hMenu, UINT pos, int size, COLORREF color);
 #endif
 
+struct SWS_Cursor {
+  HCURSOR makeFromData();
+
+  int id, hotspot_x, hotspot_y;
+  unsigned char data[32*32];
+  HCURSOR inst;
+};
+
 HCURSOR SWS_LoadCursor(int id);
 #define MOUSEEVENTF_LEFTDOWN    0x0002 /* left button down */
 #define MOUSEEVENTF_LEFTUP      0x0004 /* left button up */

@@ -26,6 +26,7 @@
 
 #include "stdafx.h"
 
+#include <gdk/gdk.h>
 
 void SWS_GetDateString(int time, char* buf, int bufsize)
 {
@@ -43,16 +44,24 @@ void SWS_GetTimeString(int time, char* buf, int bufsize)
   else strftime(buf,bufsize,"%X",tm);
 }
 
-// Modified LoadCursor from Cockos WDL
-// Supports these cursors:
-// IDC_GRID_WARP
-// IDC_ENV_PEN_GRID, IDC_ENV_PT_ADJ_VERT
-// IDC_MISC_SPEAKER
-// IDC_ZOOM_DRAG, IDC_ZOOM_IN, IDC_ZOOM_OUT, IDC_ZOOM_UNDO
-// IDC_ERASER
-HCURSOR SWS_LoadCursor(int id)
+HCURSOR SWS_Cursor::makeFromData()
 {
-  return NULL;
+  if (inst)
+    return inst;
+
+  unsigned char rgba[32*32*4];
+  for (size_t i = 0; i < 32*32; ++i) {
+    rgba[4*i+0] = rgba[4*i+1] = rgba[4*i+2] = (data[i]&0xF0) | (data[i]>>4);
+    rgba[4*i+3] = (data[i]<<4) | (data[i]&0xF);
+  }
+
+  GdkPixbuf *pb = gdk_pixbuf_new_from_data(rgba, GDK_COLORSPACE_RGB, true, 8, 32, 32, 32*4, nullptr, nullptr);
+  if (!pb) return nullptr;
+
+  GdkCursor *cur = gdk_cursor_new_from_pixbuf(gdk_display_get_default(), pb, hotspot_x, hotspot_y);
+  g_object_unref(pb);
+
+  return inst = reinterpret_cast<HCURSOR>(cur);
 }
 
 void mouse_event(DWORD dwFlags, DWORD dx, DWORD dy, DWORD dwData, ULONG_PTR dwExtraInfo)

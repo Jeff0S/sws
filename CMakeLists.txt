@@ -7,6 +7,7 @@ option(USE_SYSTEM_TAGLIB "Link against the system-provided TagLib"       OFF)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(CheckCXXCompilerFlag)
+include(FindPkgConfig)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   if(WIN32)
@@ -188,6 +189,12 @@ if(SWELL_FOUND)
     DEPENDS ${SWELL_RESGEN}
     MAIN_DEPENDENCY sws_extension.rc
   )
+
+  if(NOT APPLE)
+    pkg_search_module(GDK REQUIRED gdk-3.0 gdk-2.0)
+    # not linking: REAPER takes care of loading GDK via the SWELL_WANT_LOAD_LIBRARY mechanism
+    target_include_directories(sws PRIVATE ${GDK_INCLUDE_DIRS})
+  endif()
 endif()
 
 if(MSVC)
