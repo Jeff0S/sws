@@ -1829,6 +1829,38 @@ double GetNextGridDiv (double position)
 		}
 	}
 
+	// calculate swing grid
+	int swingmode; double division, swingamt;
+	GetSetProjectGrid(nullptr, false, &division, &swingmode, &swingamt);
+	if (swingmode && swingamt && division > 0.0)
+	{
+		/*
+		// https://forum.cockos.com/showthread.php?p=2349247#post2349247
+		// disable "Show grid line spacing" and disable "Grid snap settings follow grid visibility"
+		const ConfigVar<int> projShowGrid("projshowgrid");
+		ConfigVarOverride<int> tempProjShowGrid(projShowGrid, projShowGrid.value_or(0) & (~1) | 32768);
+
+		// copy 'line spacing' value to 'grid snap spacing' value
+		const ConfigVar<double> projGridDiv("projgriddiv");
+		const ConfigVar<double> projGridDivSnap("projgriddivsnap");
+		ConfigVarOverride<double> tempProjGridDivSnap(projGridDivSnap, *projGridDiv);
+
+		nextGridPosition = SnapToGrid(nullptr, nextGridPosition);
+		*/
+	
+		// alternative (shorter) version (also courtesy of Stevie):
+		// enable "Grid snap settings follow grid visibility"
+		const ConfigVar<int> projShowGrid("projshowgrid");
+		ConfigVarOverride<int> tempProjShowGrid(projShowGrid, projShowGrid.value_or(0)& (~32768));
+		
+		// set "line spacing minimum" to 0
+		// -> 'what you see is what you get'
+		const ConfigVar<int> projGridMin("projgridmin");
+		ConfigVarOverride<int> tempProjGridMin(projGridMin, 0);
+
+		nextGridPosition = SnapToGrid(nullptr, nextGridPosition);	
+	}
+
 	return nextGridPosition;
 }
 
