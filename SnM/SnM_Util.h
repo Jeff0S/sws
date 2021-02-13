@@ -67,6 +67,7 @@ void SNM_UpgradeIniFiles(int _iniVersion);
 
 int snprintfStrict(char* _buf, size_t _n, const char* _fmt, ...);
 bool GetStringWithRN(const char* _bufSrc, char* _buf, int _bufSize);
+std::string GetStringWithRN(const std::string &);
 const char* FindFirstRN(const char* _str, bool _anyOrder = false);
 char* ShortenStringToFirstRN(char* _str, bool _anyOrder = false);
 bool ReplaceWithChar(char* _strInOut, const char* _str, const char _replaceCh);

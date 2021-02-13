@@ -240,9 +240,7 @@ WDL_DLGRET SNM_HookThemeColorsMessage(HWND _hwnd, UINT _uMsg, WPARAM _wParam, LP
 
 void SNM_ShowMsg(const char* _msg, const char* _title, HWND _hParent)
 {
-	char msg[1024*8] = "";
-	GetStringWithRN(_msg, msg, sizeof(msg)); // truncates if needed
-	DisplayInfoBox(_hParent?_hParent:GetMainHwnd(), _title, msg, false, false); // modeless
+	DisplayInfoBox(_hParent?_hParent:GetMainHwnd(), _title, GetStringWithRN(_msg).c_str(), false, false); // modeless
 }
 
 // for modeless box created with SNM_ShowMsg()

@@ -700,6 +700,22 @@ int snprintfStrict(char* _buf, size_t _n, const char* _fmt, ...)
 	return l;
 }
 
+std::string GetStringWithRN(const std::string &input)
+{
+	std::string output;
+	output.reserve(input.size());
+
+	for (const char c : input)
+	{
+		if (c == '\n')
+			output += "\r\n";
+		else if (c != '\r')
+			output += c;
+	}
+
+	return output;
+}
+
 bool GetStringWithRN(const char* _bufIn, char* _bufOut, int _bufOutSz)
 {
 	if (!_bufOut || !_bufIn)
