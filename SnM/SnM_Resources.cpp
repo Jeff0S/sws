@@ -323,7 +323,7 @@ void TieResFileToProject(const char* _fn, int _bookmarkType, bool _checkDup = fa
 
 	if (_bookmarkType>=SNM_NUM_DEFAULT_SLOTS && g_tiedProjects.Get(_bookmarkType)->GetLength())
 		if (ResourceList* fl = g_SNM_ResSlots.Get(_bookmarkType))
-			if (!_checkDup || (_checkDup && fl->FindByPath(_fn)<0))
+			if (!_checkDup || fl->FindByPath(_fn)<0)
 			{
 				int i=0;
 				char path[SNM_MAX_PATH] = "";
@@ -347,7 +347,7 @@ void UntieResFileFromProject(const char* _fn, int _bookmarkType, bool _checkDup 
 
 	if (_bookmarkType>=SNM_NUM_DEFAULT_SLOTS && g_tiedProjects.Get(_bookmarkType)->GetLength())
 		if (ResourceList* fl = g_SNM_ResSlots.Get(_bookmarkType))
-			if (!_checkDup || (_checkDup && fl->FindByPath(_fn)<0))
+			if (!_checkDup || fl->FindByPath(_fn)<0)
 				TieResFileToProject(_fn, _bookmarkType, false, false);
 }
 

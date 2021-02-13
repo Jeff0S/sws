@@ -72,7 +72,7 @@ void CopySendsReceives(bool _noIntra, WDL_PtrList<MediaTrack>* _trs,
 				MediaTrack* dest = (MediaTrack*)GetSetTrackSendInfo(tr, 0, idx, "P_DESTTRACK", NULL);
 				while (dest)
 				{
-					if (!_noIntra || (_noIntra && _trs->Find(dest)<0))
+					if (!_noIntra || _trs->Find(dest)<0)
 					{
 						SNM_SndRcv* send = new SNM_SndRcv();
 						if (send->FillIOFromReaper(tr, dest, 0, idx))
@@ -91,7 +91,7 @@ void CopySendsReceives(bool _noIntra, WDL_PtrList<MediaTrack>* _trs,
 				MediaTrack* src = (MediaTrack*)GetSetTrackSendInfo(tr, -1, idx, "P_SRCTRACK", NULL);
 				while (src)
 				{
-					if (!_noIntra || (_noIntra && _trs->Find(src)<0))
+					if (!_noIntra || _trs->Find(src)<0)
 					{
 						SNM_SndRcv* rcv = new SNM_SndRcv();
 						if (rcv->FillIOFromReaper(src, tr, -1, idx))
@@ -142,8 +142,8 @@ bool PasteSendsReceives(WDL_PtrList<MediaTrack>* _trs,
 	for (int i=0; i<_trs->GetSize(); i++)
 	{
 		// when the nb of copied tracks' routings == nb of dest tracks, paste them respectively
-		if ((!_snds || (_snds && _trs->GetSize()==_snds->GetSize())) && 
-			(!_rcvs || (_rcvs && _trs->GetSize()==_rcvs->GetSize())))
+		if ((!_snds || _trs->GetSize()==_snds->GetSize()) &&
+		    (!_rcvs || _trs->GetSize()==_rcvs->GetSize()))
 		{
 			updated |= PasteSendsReceives(true, _trs->Get(i), _snds, i, ps);
 			updated |= PasteSendsReceives(false, _trs->Get(i), _rcvs, i, ps);

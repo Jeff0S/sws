@@ -63,7 +63,7 @@ int UpdateMarkerRegionCache()
 	while ((x = EnumProjectMarkers3(NULL, x, &isRgn, &pos, &rgnend, &name, &num, &col)))
 	{
 		MarkerRegion* m = g_mkrRgnCache.Get(i);
-		if (!m || (m && !m->Compare(isRgn, pos, rgnend, name, num, col)))
+		if (!m || !m->Compare(isRgn, pos, rgnend, name, num, col))
 		{
 			if (m) g_mkrRgnCache.Delete(i, true);
 			g_mkrRgnCache.Insert(i, new MarkerRegion(isRgn, pos, rgnend, name, num, col));

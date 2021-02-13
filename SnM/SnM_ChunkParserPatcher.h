@@ -1019,8 +1019,8 @@ static int RemoveChunkLines(char* _chunk, const char* _searchStr, bool _checkBOL
 		while (*bol && bol > _chunk && *bol != '\n') bol--;
 		if (eol && bol && (*bol == '\n' || bol == _chunk) &&
 			// additional optional checks (safety)
-			(!_checkEOLChar || (_checkEOLChar && *((char*)(eol-1)) == _checkEOLChar)) &&
-			(!_checkBOL || (_checkBOL && idStr == (char*)(bol + ((bol == _chunk ? 0 : 1))))))
+			(!_checkEOLChar || *((char*)(eol-1)) == _checkEOLChar) &&
+			(!_checkBOL || idStr == (char*)(bol + ((bol == _chunk ? 0 : 1)))))
 		{
 			updates++;
 			if (bol != _chunk) bol++;

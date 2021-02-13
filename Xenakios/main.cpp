@@ -547,7 +547,7 @@ void ItemPreview(int mode, MediaItem* item, MediaTrack* track, double volume, do
 		GetSetMediaItemInfo(item, "B_MUTE", &g_bFalse); // needs to be set before getting the source
 
 		PCM_source* src = DuplicateSource((PCM_source*)item); // Casting from MediaItem* to PCM_source works!  Who would have known?
-		if (src && (!isMidi || (isMidi && effectiveMidiTakeLen > 0 && effectiveMidiTakeLen > startOffset)))
+		if (src && (!isMidi || (effectiveMidiTakeLen > 0 && effectiveMidiTakeLen > startOffset)))
 		{
 			GetSetMediaItemInfo((MediaItem*)src, "D_POSITION", &g_d0);
 			if (isMidi) GetSetMediaItemInfo((MediaItem*)src, "D_LENGTH", &effectiveMidiTakeLen);

@@ -707,7 +707,7 @@ void BR_SetMediaItemImageResource (MediaItem* item, const char* imageIn, int ima
 
 		bool didImage      = !imageIn;
 		bool didImageFlags = false;
-		bool doImageFlags  = (!imageIn || (imageIn && strcmp(imageIn, "")));
+		bool doImageFlags  = !imageIn || strcmp(imageIn, "");
 		bool commitTwice   = false; // in case image path is the same as one already set in the item, reaper will remove it in case we supply chunk with the same path (and sometimes we just want to change the flag)
 		bool skipCommit    = false;
 

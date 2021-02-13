@@ -490,7 +490,7 @@ bool FindWnd::FindMediaItem(int _dir, bool _allTakes, bool (*jobTake)(MediaItem_
 						for (int k=0; item && k < nbTakes; k++)
 						{
 							MediaItem_Take* tk = GetMediaItemTake(item, k);
-							if (tk && (_allTakes || (!_allTakes && tk == GetActiveTake(item))))
+							if (tk && (_allTakes || tk == GetActiveTake(item)))
 							{
 								if (jobTake(tk, g_searchStr))
 								{

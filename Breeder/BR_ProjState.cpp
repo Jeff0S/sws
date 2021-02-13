@@ -830,7 +830,7 @@ bool BR_ItemMuteState::Restore (bool selectedOnly)
 	{
 		if (MediaItem* item = GuidToItem(&m_items[i].guid))
 		{
-			if (!selectedOnly || (selectedOnly && GetMediaItemInfo_Value(item, "B_UISEL") != 0))
+			if (!selectedOnly || GetMediaItemInfo_Value(item, "B_UISEL"))
 			{
 				SetMediaItemInfo_Value(item, "B_MUTE", m_items[i].mute);
 				update = true;
@@ -917,7 +917,7 @@ bool BR_TrackSoloMuteState::Restore (bool selectedOnly)
 	{
 		if (MediaTrack* track = GuidToTrack(&m_tracks[i].guid))
 		{
-			if (!selectedOnly || (selectedOnly && GetMediaTrackInfo_Value(track, "I_SELECTED") != 0))
+			if (!selectedOnly || GetMediaTrackInfo_Value(track, "I_SELECTED"))
 			{
 				SetMediaTrackInfo_Value(track, "I_SOLO", m_tracks[i].solo);
 				SetMediaTrackInfo_Value(track, "B_MUTE", m_tracks[i].mute);

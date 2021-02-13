@@ -1024,7 +1024,7 @@ void RegionPlaylistWnd::DrawControls(LICE_IBitmap* _bm, const RECT* _r, int* _to
 						m_txtPlaylist.SetText(hasPlaylists ? __LOCALIZE("Playlist #","sws_DLG_165") : __LOCALIZE("Playlist: None","sws_DLG_165"));
 						if (SNM_AutoVWndPosition(DT_LEFT, &m_txtPlaylist, NULL, _r, &x0, _r->top, h, hasPlaylists?4:SNM_DEF_VWND_X_STEP))
 						{
-							if (!hasPlaylists || (hasPlaylists && SNM_AutoVWndPosition(DT_LEFT, &m_cbPlaylist, &m_txtPlaylist, _r, &x0, _r->top, h, 4)))
+							if (!hasPlaylists || SNM_AutoVWndPosition(DT_LEFT, &m_cbPlaylist, &m_txtPlaylist, _r, &x0, _r->top, h, 4))
 							{
 								m_btnDel.SetEnabled(hasPlaylists);
 								if (SNM_AutoVWndPosition(DT_LEFT, &m_btnsAddDel, NULL, _r, &x0, _r->top, h))
@@ -1409,7 +1409,7 @@ void PlaylistRun()
 		{
 			// a bunch of calls end here when looping!!
 
-			if (!g_plLoop || (g_plLoop && (g_unsync || pos<g_lastRunPos)))
+			if (!g_plLoop || g_unsync || pos<g_lastRunPos)
 			{
 				g_plLoop = false;
 
@@ -2126,7 +2126,7 @@ static void SaveExtensionConfig(ProjectStateContext *ctx, bool isUndo, struct pr
 				confStr.AppendFormatted(128,"%d %d\n", item->m_rgnId, item->m_cnt);
 
 		// ignore empty playlists when saving but always take them into account for undo
-		if (isUndo || (!isUndo && confStr.GetLength() > iHeaderLen)) {
+		if (isUndo || confStr.GetLength() > iHeaderLen) {
 			confStr.Append(">\n");
 			StringToExtensionConfig(&confStr, ctx);
 		}

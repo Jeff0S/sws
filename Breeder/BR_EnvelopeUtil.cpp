@@ -952,10 +952,8 @@ bool BR_Envelope::VisibleInArrange (int* envHeight, int* yOffset, bool cacheValu
 
 	if (this->IsTakeEnvelope())
 	{
-		if (!cacheValues || (cacheValues && m_height == -1))
-		{
+		if (!cacheValues || m_height == -1)
 			m_height = GetTakeEnvHeight(m_take, &m_yOffset);
-		}
 
 		WritePtr(envHeight, m_height);
 		WritePtr(yOffset,   m_yOffset);
@@ -978,10 +976,8 @@ bool BR_Envelope::VisibleInArrange (int* envHeight, int* yOffset, bool cacheValu
 	}
 	else
 	{
-		if (!cacheValues || (cacheValues && m_height == -1))
-		{
+		if (!cacheValues || m_height == -1)
 			m_height = GetTrackEnvHeight(m_envelope, &m_yOffset, true, this->GetParent());
-		}
 
 		WritePtr(envHeight, m_height);
 		WritePtr(yOffset,   m_yOffset);
@@ -1904,7 +1900,7 @@ bool BR_Envelope::FillProperties () const
 							++subchunks;
 						else if (!strcmp(token, ">"))
 							--subchunks;
-					
+
 						AppendLine(m_properties.EXT, token);
 						token = strtok(NULL, "\n");
 					} while (token && subchunks > 0);
@@ -2458,11 +2454,11 @@ bool ToggleShowSendEnvelope (MediaTrack* track, int sendId, BR_EnvType type)
 						if ((type & PAN)    && !panEnv.GetLength())  {panEnv  = ConstructReceiveEnv(PAN,    trim ? sendPan : 0,    hwSend); stateUpdated = true;}
 						if ((type & MUTE)   && !muteEnv.GetLength()) {muteEnv = ConstructReceiveEnv(MUTE,   sendMute,              hwSend); stateUpdated = true;}
 
-						if (volEnv.GetLength()  && (!(type & VOLUME) || (!envelopeHidden || (envelopeHidden && pointCount >= 2))))
+						if (volEnv.GetLength()  && (!(type & VOLUME) || (!envelopeHidden || pointCount >= 2)))
 							newState.Append(volEnv.Get());
-						if (panEnv.GetLength()  && (!(type & PAN)    || (!envelopeHidden || (envelopeHidden && pointCount >= 2))))
+						if (panEnv.GetLength()  && (!(type & PAN)    || (!envelopeHidden || pointCount >= 2)))
 							newState.Append(panEnv.Get());
-						if (muteEnv.GetLength() && (!(type & MUTE)   || (!envelopeHidden || (envelopeHidden && pointCount >= 2))))
+						if (muteEnv.GetLength() && (!(type & MUTE)   || (!envelopeHidden || pointCount >= 2)))
 							newState.Append(muteEnv.Get());
 					}
 					else

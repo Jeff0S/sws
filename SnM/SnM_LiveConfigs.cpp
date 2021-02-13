@@ -360,7 +360,7 @@ bool LiveConfigItem::IsDefault(bool _ignoreComment)
 { 
 	return (
 		!m_track &&
-		(_ignoreComment || (!_ignoreComment && !m_desc.GetLength())) &&
+		(_ignoreComment || !m_desc.GetLength()) &&
 		!m_trTemplate.GetLength() &&
 		!m_fxChain.GetLength() &&
 		!m_presets.GetLength() && 
@@ -386,7 +386,7 @@ bool LiveConfigItem::Equals(LiveConfigItem* _item, bool _ignoreComment)
 {
 	return (_item &&
 		m_track == _item->m_track &&
-		(_ignoreComment || (!_ignoreComment && !strcmp(m_desc.Get(), _item->m_desc.Get()))) &&
+		(_ignoreComment || !strcmp(m_desc.Get(), _item->m_desc.Get())) &&
 		!strcmp(m_trTemplate.Get(), _item->m_trTemplate.Get()) &&
 		!strcmp(m_fxChain.Get(), _item->m_fxChain.Get()) &&
 		!strcmp(m_presets.Get(), _item->m_presets.Get()) &&

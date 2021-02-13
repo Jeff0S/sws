@@ -910,7 +910,7 @@ set<int> GetUsedCCLanes (HWND midiEditor, int detect14bit, bool selectedEventsOn
 		{
 			bool selected; int chan;
 			MIDI_GetNote(take, i, &selected, NULL, NULL, NULL, &chan, NULL, NULL);
-			if (editor.IsChannelVisible(chan) && (!selectedEventsOnly || (selectedEventsOnly && selected)))
+			if (editor.IsChannelVisible(chan) && (!selectedEventsOnly || selected))
 			{
 				usedCC.insert(-1);
 				break;
@@ -926,7 +926,7 @@ set<int> GetUsedCCLanes (HWND midiEditor, int detect14bit, bool selectedEventsOn
 
 			if (type == -1)
 			{
-				if (!foundSys && (!selectedEventsOnly || (selectedEventsOnly && selected)))
+				if (!foundSys && (!selectedEventsOnly || selected))
 				{
 					usedCC.insert(CC_SYSEX);
 					foundSys = true;
@@ -936,7 +936,7 @@ set<int> GetUsedCCLanes (HWND midiEditor, int detect14bit, bool selectedEventsOn
 			}
 			else
 			{
-				if (!foundText && (!selectedEventsOnly || (selectedEventsOnly && selected)))
+				if (!foundText && (!selectedEventsOnly || selected))
 				{
 					usedCC.insert(CC_TEXT_EVENTS);
 					foundText = true;
@@ -1477,7 +1477,7 @@ bool DeleteEventsInLane (MediaItem_Take* take, int lane, bool selectedOnly, doub
 
 			if ((!doRange || CheckBounds(position, startRangePpq, endRangePpq)) && ((lane == CC_SYSEX && type == -1) || (lane == CC_TEXT_EVENTS && CheckBounds(type, 1, 7))))
 			{
-				if (!selectedOnly || (selectedOnly && selected))
+				if (!selectedOnly || selected)
 				{
 					MIDI_DeleteTextSysexEvt(take, i);
 					--i;
@@ -1502,7 +1502,7 @@ bool DeleteEventsInLane (MediaItem_Take* take, int lane, bool selectedOnly, doub
 
 			if ((!doRange || CheckBounds(position, startRangePpq, endRangePpq)) && chanMsg == eventType && (eventType != STATUS_CC || (lane1 == msg2 || lane2 == msg2)))
 			{
-				if (!selectedOnly || (selectedOnly && selected))
+				if (!selectedOnly || selected)
 				{
 					MIDI_DeleteCC(take, i);
 					--i;

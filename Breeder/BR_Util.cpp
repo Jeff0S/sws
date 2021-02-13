@@ -1638,7 +1638,7 @@ bool InsertStretchMarkersInAllItems (const vector<double>& stretchMarkers, bool 
 {
 	bool updated = true;
 
-	if (!IsLocked(ITEM_FULL) && !IsLocked(STRETCH_MARKERS) && (!obeySwsOptions || (obeySwsOptions && IsSetAutoStretchMarkersOn(NULL))))
+	if (!IsLocked(ITEM_FULL) && !IsLocked(STRETCH_MARKERS) && (!obeySwsOptions || IsSetAutoStretchMarkersOn(nullptr)))
 	{
 		const int itemCount = CountMediaItems(NULL);
 		for (int i = 0; i < itemCount; ++i)
@@ -2424,7 +2424,7 @@ static HWND SearchChildren (const char* name, HWND hwnd, HWND startHwnd = NULL, 
 				GetWindowText(hwnd, wndName, sizeof(wndName));
 				if (!strcmp(wndName, name))
 				{
-					if (!windowHasNoChildren || (windowHasNoChildren && !GetWindow(hwnd, GW_CHILD)))
+					if (!windowHasNoChildren || !GetWindow(hwnd, GW_CHILD))
 						returnHwnd = hwnd;
 				}
 			}
@@ -2439,7 +2439,7 @@ static HWND SearchChildren (const char* name, HWND hwnd, HWND startHwnd = NULL, 
 			while (true)
 			{
 				returnHwnd = FindWindowEx(hwnd, returnHwnd, NULL, name);
-				if (!returnHwnd || !windowHasNoChildren || (windowHasNoChildren && !GetWindow(returnHwnd, GW_CHILD)))
+				if (!returnHwnd || !windowHasNoChildren || !GetWindow(returnHwnd, GW_CHILD))
 					return returnHwnd;
 			}
 		}
@@ -2503,8 +2503,8 @@ static HWND FindFloating (const char* name, bool checkForNoCaption = false, bool
 	{
 		if (GetParent(hwnd) == g_hwndParent)
 		{
-			if ((!checkForNoCaption   || (checkForNoCaption   && !(GetWindowLongPtr(hwnd, GWL_STYLE) & WS_CAPTION))) &&
-				(!windowHasNoChildren || (windowHasNoChildren && !GetWindow(hwnd, GW_CHILD)))
+			if ((!checkForNoCaption || !(GetWindowLongPtr(hwnd, GWL_STYLE) & WS_CAPTION)) &&
+				(!windowHasNoChildren || !GetWindow(hwnd, GW_CHILD))
 			)
 				return hwnd;
 		}

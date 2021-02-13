@@ -106,7 +106,7 @@ void SNM_GetSelectedItems(ReaProject* _proj, WDL_PtrList<MediaItem>* _items, boo
 	int count = _items ? CountTracks(_proj) : 0;
 	for (int i=1; i <= count; i++) // skip master
 		if (MediaTrack* tr = SNM_GetTrack(_proj, i))
-			if (!_onSelTracks || (_onSelTracks && *(int*)GetSetMediaTrackInfo(tr, "I_SELECTED", NULL)))
+			if (!_onSelTracks || GetMediaTrackInfo_Value(tr, "I_SELECTED"))
 				for (int j=0; j < GetTrackNumMediaItems(tr); j++)
 					if (MediaItem* item = GetTrackMediaItem(tr,j))
 						if (*(bool*)GetSetMediaItemInfo(item, "B_UISEL", NULL))
@@ -119,7 +119,7 @@ bool SNM_SetSelectedItems(ReaProject* _proj, WDL_PtrList<MediaItem>* _items, boo
 	int count = _items && _items->GetSize() ? CountTracks(_proj) : 0;
 	for (int i=1; i <= count; i++) // skip master
 		if (MediaTrack* tr = SNM_GetTrack(_proj, i))
-			if (!_onSelTracks || (_onSelTracks && *(int*)GetSetMediaTrackInfo(tr, "I_SELECTED", NULL)))
+			if (!_onSelTracks || GetMediaTrackInfo_Value(tr, "I_SELECTED"))
 				for (int j=0; j < GetTrackNumMediaItems(tr); j++)
 					if (MediaItem* item = GetTrackMediaItem(tr, j))
 						for (int k=0; k < _items->GetSize(); k++)
@@ -137,7 +137,7 @@ bool SNM_ClearSelectedItems(ReaProject* _proj, bool _onSelTracks) // primitive f
 	int count = CountTracks(_proj);
 	for (int i=1; i <= count; i++) // skip master
 		if (MediaTrack* tr = SNM_GetTrack(_proj, i))
-			if (!_onSelTracks || (_onSelTracks && *(int*)GetSetMediaTrackInfo(tr, "I_SELECTED", NULL)))
+			if (!_onSelTracks || GetMediaTrackInfo_Value(tr, "I_SELECTED"))
 				for (int j=0; j < GetTrackNumMediaItems(tr); j++)
 					if (MediaItem* item = GetTrackMediaItem(tr, j))
 						if (*(bool*)GetSetMediaItemInfo(item, "B_UISEL", NULL)) {
@@ -409,7 +409,7 @@ bool SplitSelectItemsInInterval(const char* _undoTitle, double _pos1, double _po
 	PreventUIRefresh(1);
 	for (int i=1; i <= GetNumTracks(); i++) // skip master
 		if (MediaTrack* tr = CSurf_TrackFromID(i, false))
-			if (!_selTracks || (_selTracks && *(int*)GetSetMediaTrackInfo(tr, "I_SELECTED", NULL)))
+			if (!_selTracks || GetMediaTrackInfo_Value(tr, "I_SELECTED"))
 				updated |= SplitSelectItemsInInterval(tr, _pos1, _pos2, _newItemsOut);
 	PreventUIRefresh(-1);
 
@@ -549,7 +549,7 @@ int BuildLanes(const char* _undoTitle, int _mode)
 	for (int i = 1; i <= GetNumTracks(); i++) // skip master
 	{
 		MediaTrack* tr = CSurf_TrackFromID(i, false);
-		if (tr && (_mode || (!_mode && *(int*)GetSetMediaTrackInfo(tr, "I_SELECTED", NULL))))
+		if (tr && (_mode || GetMediaTrackInfo_Value(tr, "I_SELECTED")))
 		{
 			WDL_PtrList<void> items;
 			WDL_IntKeyedArray<int> recPassColors; 
@@ -560,7 +560,7 @@ int BuildLanes(const char* _undoTitle, int _mode)
 			for (int j = 0; tr && j < GetTrackNumMediaItems(tr); j++)
 			{
 				MediaItem* item = GetTrackMediaItem(tr,j);
-				if (item && (!_mode || (_mode && *(bool*)GetSetMediaItemInfo(item,"B_UISEL",NULL))))
+				if (item && (!_mode || GetMediaItemInfo_Value(item,"B_UISEL")))
 				{
 					int* recPasses = new int[SNM_RECPASSPARSER_MAX_TAKES];
 					int takeColors[SNM_RECPASSPARSER_MAX_TAKES];
@@ -661,10 +661,10 @@ bool RemoveEmptyTakes(MediaTrack* _tr, bool _empty, bool _midiEmpty, bool _trSel
 	bool updated = false;
 	for (int j = 0; _tr && j < GetTrackNumMediaItems(_tr); j++)
 	{
-		if (!_trSel || (_trSel && *(int*)GetSetMediaTrackInfo(_tr, "I_SELECTED", NULL)))
+		if (!_trSel || GetMediaTrackInfo_Value(_tr, "I_SELECTED"))
 		{
 			MediaItem* item = GetTrackMediaItem(_tr,j);
-			if (item && (!_itemSel || (_itemSel && *(bool*)GetSetMediaItemInfo(item,"B_UISEL",NULL))))
+			if (item && (!_itemSel || GetMediaItemInfo_Value(item,"B_UISEL")))
 			{
 				SNM_TakeParserPatcher p(item, CountTakes(item));
 				int k=0, kOriginal=0;

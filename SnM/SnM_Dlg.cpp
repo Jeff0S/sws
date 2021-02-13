@@ -66,13 +66,13 @@ bool g_SNM_ClearType = true;
 
 ColorTheme* SNM_GetColorTheme(bool _checkForSize) {
 	int sz; ColorTheme* ct = (ColorTheme*)GetColorThemeStruct(&sz);
-	if (ct && (!_checkForSize || (_checkForSize && sz >= sizeof(ColorTheme)))) return ct;
+	if (ct && (!_checkForSize || sz >= sizeof(ColorTheme))) return ct;
 	return NULL;
 }
 
 IconTheme* SNM_GetIconTheme(bool _checkForSize) {
 	int sz; IconTheme* it = (IconTheme*)GetIconThemeStruct(&sz);
-	if (it && (!_checkForSize || (_checkForSize && sz >= sizeof(IconTheme)))) return it;
+	if (it && (!_checkForSize || sz >= sizeof(IconTheme))) return it;
 	return NULL;
 }
 
