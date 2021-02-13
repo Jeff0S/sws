@@ -314,6 +314,26 @@ int CF_GetMediaSourceBitDepth(PCM_source *source)
   return source ? source->GetBitsPerSample() : 0;
 }
 
+double CF_GetMediaSourceBitRate(PCM_source *source)
+{
+  if(!source)
+    return 0;
+
+  double brate{};
+  if(source->Extended(PCM_SOURCE_EXT_GETBITRATE, &brate, nullptr, nullptr))
+    return brate;
+
+  if(strcmp(source->GetType(), "WAVE"))
+    return 0;
+
+  // constant bit rate
+  const double chans  = source->GetNumChannels(),
+               bdepth = source->GetBitsPerSample(),
+               srate  = source->GetSampleRate();
+
+  return srate * bdepth * chans;
+}
+
 bool CF_GetMediaSourceOnline(PCM_source *source)
 {
   return source && source->IsAvailable();
