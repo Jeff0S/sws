@@ -239,6 +239,9 @@ const char *stristr(const char* a, const char* b);
 // caller must check for take != NULL
 void UpdateStretchMarkersAfterSetTakeStartOffset(MediaItem_Take* take, double takeStartOffset_multiplyPlayrate);
 
+// returns source filename also if source is section/reversed (see PCM_source::GetFilename() comment)
+const char* SWS_GetSourceFileName(PCM_source* src);
+
 #ifdef _WIN32
   void dprintf(const char* format, ...);
 #else

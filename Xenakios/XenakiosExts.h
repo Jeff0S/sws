@@ -326,7 +326,6 @@ void DoShowItemInterpDLG(COMMAND_T*);
 
 //===========================================================
 // TakeRenaming.cpp
-void DoRenameSourceFileDialog666(COMMAND_T*);
 void DoRenameTakeAndSourceFileDialog(COMMAND_T*);
 void DoRenameTakeDialog666(COMMAND_T*);
 void DoRenameTakeAllDialog666(COMMAND_T*);

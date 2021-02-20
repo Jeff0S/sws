@@ -512,3 +512,10 @@ void UpdateStretchMarkersAfterSetTakeStartOffset(MediaItem_Take* take, double ta
 	}
 	UpdateItemInProject(GetMediaItemTake_Item(take));
 }
+
+const char* SWS_GetSourceFileName(PCM_source* src)
+{
+	if (src && !src->GetFileName())
+		src = src->GetSource();
+	return src ? src->GetFileName() : nullptr;
+}

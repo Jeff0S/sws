@@ -178,6 +178,29 @@ bool SNM_DeletePeakFile(const char* _fn, bool _recycleBin)
 	return false;	
 }
 
+bool SNM_MovePeakFile(const char* oldMediaFn, const char* newMediaFn)
+{
+	char oldPeakFn[SNM_MAX_PATH]{}, newPeakFn[SNM_MAX_PATH]{};
+	GetPeakFileName(oldMediaFn, oldPeakFn, sizeof(oldPeakFn));
+	GetPeakFileNameEx(newMediaFn, newPeakFn, sizeof(newPeakFn), true);
+
+	if (const char dirSep{ WDL_remove_filepart(newPeakFn) }) {
+		// create the last directory (eg. the first two characters of the hashed filename)
+		// assumes all parent directories already exists
+		CreateDirectory(newPeakFn, nullptr);
+		newPeakFn[strlen(newPeakFn)] = dirSep;
+	}
+
+	if (!MoveFile(oldPeakFn, newPeakFn)) {
+		if (!SNM_CopyFile(newPeakFn, oldPeakFn))
+			return false;
+
+		SNM_DeleteFile(oldPeakFn, false);
+	}
+
+	return true;
+}
+
 bool SNM_CopyFile(const char* _destFn, const char* _srcFn)
 {
 	bool ok = false;

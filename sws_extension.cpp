@@ -841,6 +841,7 @@ error:
 		IMPAPI(GetNumTracks);
 		IMPAPI(GetOutputChannelName);
 		IMPAPI(GetPeakFileName);
+		IMPAPI(GetPeakFileNameEx);
 		IMPAPI(GetPeaksBitmap);
 		IMPAPI(GetPlayPosition);
 		IMPAPI(GetPlayPosition2);

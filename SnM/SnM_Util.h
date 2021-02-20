@@ -42,6 +42,7 @@ bool FileOrDirExists(const char* _fn);
 bool FileOrDirExistsErrMsg(const char* _fn, bool _errMsg = true);
 bool SNM_DeleteFile(const char* _filename, bool _recycleBin);
 bool SNM_DeletePeakFile(const char* _fn, bool _recycleBin);
+bool SNM_MovePeakFile(const char* oldMediaFn, const char* newMediaFn);
 bool SNM_CopyFile(const char* _destFn, const char* _srcFn);
 void RevealFile(const char* _fn, bool _errMsg = true);
 bool BrowseResourcePath(const char* _title, const char* _dir, const char* _fileFilters, char* _fn, int _fnSize, bool _wantFullPath = false);
