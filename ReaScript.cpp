@@ -303,6 +303,7 @@ APIdef g_apidefs[] =
 	{ APIFUNC(NF_Win32_GetSystemMetrics), "int", "int", "nIndex", "Equivalent to win32 API GetSystemMetrics().", },
 	{ APIFUNC(NF_GetSWS_RMSoptions), "void", "double*,double*", "targetOut,windowSizeOut", "Get SWS analysis/normalize options. See <a href=\"#NF_SetSWS_RMSoptions\">NF_SetSWS_RMSoptions</a>.", },
 	{ APIFUNC(NF_SetSWS_RMSoptions), "bool", "double,double", "targetLevel,windowSize", "Set SWS analysis/normalize options (same as running action 'SWS: Set RMS analysis/normalize options'). targetLevel: target RMS normalize level (dB), windowSize: window size for peak RMS (sec.)", },
+	{ APIFUNC(NF_ArmEnvelope), "bool", "TrackEnvelope*,int", "envelope,mode", "Arm/disarm/toogle arm a Track envelope. mode: -1=toggle, 0=disarm, 1=arm. Returns true on success. Only works on active envelopes.", },
 	// /*** nofish stuff ***
 
 	{ APIFUNC(SN_FocusMIDIEditor), "void", "", "", "Focuses the active/open MIDI editor.", },

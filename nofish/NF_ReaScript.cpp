@@ -37,7 +37,7 @@
 #include "../Breeder/BR_Loudness.h" // #880
 #include "../SnM/SnM_Notes.h" // #755
 #include "../SnM/SnM_Project.h" // #974
-#include "../SnM/SnM_Chunk.h" // SNM_FXSummaryParser
+#include "../SnM/SnM_Chunk.h" // SNM_FXSummaryParser, SNM_ArmEnvParserPatcher_Env
 
 // #781, peak/RMS
 double DoGetMediaItemMaxPeakAndMaxPeakPos(MediaItem* item, double* maxPeakPosOut) // maxPeakPosOut == NULL: peak only
@@ -336,6 +336,17 @@ bool NF_TakeFX_GetFXModuleName(MediaItem * item, int fx, char * nameOut, int nam
 int NF_Win32_GetSystemMetrics(int nIndex)
 {
 	return GetSystemMetrics(nIndex);
+}
+
+bool NF_ArmEnvelope(TrackEnvelope* env, int mode)
+{
+	if (env && mode > -2 && mode < 2)
+	{
+		SNM_ArmEnvParserPatcher_Env p(env);
+		p.SetNewValue(mode);
+		return (p.ParsePatch(-1) > 0);
+	}
+	return false;
 }
 
 // #974

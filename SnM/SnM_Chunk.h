@@ -297,15 +297,38 @@ class SNM_ArmEnvParserPatcher : public SNM_ChunkParserPatcher
 public:
 	SNM_ArmEnvParserPatcher(MediaTrack* _tr) : SNM_ChunkParserPatcher(_tr) {
 		m_newValue = -1; // i.e. toggle
+		m_skipReceiveEnvs = false;
 	}
 	~SNM_ArmEnvParserPatcher() {}
 	void SetNewValue(int _newValue) {m_newValue = _newValue;}
+	void SkipReceiveEns(bool _skipReceiveEns) {m_skipReceiveEnvs = _skipReceiveEns;}
 protected:
 	bool NotifyChunkLine(int _mode, 
 		LineParser* _lp, const char* _parsedLine, int _linePos,
 		int _parsedOccurence, WDL_PtrList<WDL_FastString>* _parsedParents,
 		WDL_FastString* _newChunk, int _updates);
 private:
+	int m_newValue;
+	bool m_skipReceiveEnvs;
+};
+
+// similar to SNM_ArmEnvParserPatcher, but works on a TrackEnvelope* directly
+class SNM_ArmEnvParserPatcher_Env : public SNM_ChunkParserPatcher
+{
+public:
+	SNM_ArmEnvParserPatcher_Env(TrackEnvelope* _env) : SNM_ChunkParserPatcher(_env) {
+		m_envIsActive = false;
+		m_newValue = -1; // i.e. toggle
+	}
+	~SNM_ArmEnvParserPatcher_Env() {}
+	void SetNewValue(int _newValue) { m_newValue = _newValue; }
+protected:
+	bool NotifyChunkLine(int _mode,
+		LineParser* _lp, const char* _parsedLine, int _linePos,
+		int _parsedOccurence, WDL_PtrList<WDL_FastString>* _parsedParents,
+		WDL_FastString* _newChunk, int _updates) override;
+private:
+	bool m_envIsActive;
 	int m_newValue;
 };
 

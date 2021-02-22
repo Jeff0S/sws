@@ -805,6 +805,8 @@ bool SNM_ArmEnvParserPatcher::NotifyChunkLine(int _mode,
 			if (!strcmp(grandpa, "TRACK") || !strcmp(grandpa, "FXCHAIN")) // don't scratch item env for ex
 			{
 				const char* parent = GetParent(_parsedParents);
+				if (m_skipReceiveEnvs && (!strcmp(parent, "AUXVOLENV") || !strcmp(parent, "AUXPANENV") || !strcmp(parent, "AUXMUTEENV")))
+					return false;
 				// most "frequent" first!
 				if ((_mode == -1 && LookupTrackEnvName(parent, true)) || 
 					(_mode == -2 && !strcmp(parent, "AUXVOLENV")) ||
@@ -824,6 +826,37 @@ bool SNM_ArmEnvParserPatcher::NotifyChunkLine(int _mode,
 	return updated;
 }
 
+// _mode: -1 all envelopes, -2 receive vol envelopes, -3 receive pan envelopes, -4 receive mute envelopes
+bool SNM_ArmEnvParserPatcher_Env::NotifyChunkLine(int _mode, 
+	LineParser* _lp, const char* _parsedLine, int _linePos,
+	int _parsedOccurence, WDL_PtrList<WDL_FastString>* _parsedParents, WDL_FastString* _newChunk, int _updates)
+{
+	bool updated = false;
+	if (_mode < 0)
+	{
+		// check if envelope is active
+		if (!strcmp(_lp->gettoken_str(0), "ACT") && _lp->gettoken_int(1) == 1)
+			m_envIsActive = true;
+
+		if (_lp->getnumtokens() == 2 && !strcmp(_lp->gettoken_str(0), "ARM") && m_envIsActive)
+		{
+			const char* parent = GetParent(_parsedParents);
+			// most "frequent" first!
+			if ((_mode == -1 && LookupTrackEnvName(parent, false)) ||
+				(_mode == -2 && !strcmp(parent, "AUXVOLENV")) ||
+				(_mode == -3 && !strcmp(parent, "AUXPANENV")) ||
+				(_mode == -4 && !strcmp(parent, "AUXMUTEENV")))
+			{
+				if (m_newValue == -1)
+					_newChunk->AppendFormatted(SNM_MAX_CHUNK_LINE_LENGTH, "ARM %d\n", !_lp->gettoken_int(1) ? 1 : 0);
+				else
+					_newChunk->AppendFormatted(SNM_MAX_CHUNK_LINE_LENGTH, "ARM %d\n", m_newValue);
+				updated = true;
+			}
+		}
+	}
+	return updated;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // SNM_LearnMIDIChPatcher

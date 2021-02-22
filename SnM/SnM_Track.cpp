@@ -521,6 +521,45 @@ bool LookupTrackEnvName(const char* _str, bool _allEnvs)
 	return false;
 }
 
+bool ToggleArmTrackEnv_Sends(MediaTrack* tr, int ct_user)
+{
+	bool updated = false;
+	for (int i = 0; i < GetTrackNumSends(tr, 0); i++)
+	{
+		std::vector<TrackEnvelope*> sendEnvs;
+		// getting TrackEnvelope* this way seems to never return nullptr (even if user hasn't added an env.)
+		// but check anyway in case this changes in future
+		if (TrackEnvelope* sendVolEnv = static_cast<TrackEnvelope*>(GetSetTrackSendInfo(tr, 0, i, "P_ENV:<VOLENV", nullptr)))
+			sendEnvs.push_back(sendVolEnv);
+		if (TrackEnvelope* sendPanEnv = static_cast<TrackEnvelope*>(GetSetTrackSendInfo(tr, 0, i, "P_ENV:<PANENV", nullptr)))
+			sendEnvs.push_back(sendPanEnv);
+		if (TrackEnvelope* sendMuteEnv = static_cast<TrackEnvelope*>(GetSetTrackSendInfo(tr, 0, i, "P_ENV:<MUTEENV", nullptr)))
+			sendEnvs.push_back(sendMuteEnv);
+		{
+			for (size_t j = 0; j < sendEnvs.size(); j++)
+			{
+				SNM_ArmEnvParserPatcher_Env p(sendEnvs[j]);
+				switch (ct_user)
+				{
+				case 0:
+					p.SetNewValue(-1);//toggle
+					updated = (p.ParsePatch(-1) > 0) || updated;
+					break;
+				case 1:
+					p.SetNewValue(1);//arm
+					updated = (p.ParsePatch(-1) > 0) || updated;
+					break;
+				case 2:
+					p.SetNewValue(0); //disarm
+					updated = (p.ParsePatch(-1) > 0) || updated;
+					break;
+				}
+			}
+		}
+	}
+	return updated;
+}
+
 void ToggleArmTrackEnv(COMMAND_T* _ct)
 {
 	bool updated = false;
@@ -535,15 +574,18 @@ void ToggleArmTrackEnv(COMMAND_T* _ct)
 				// all envs
 				case 0:
 					p.SetNewValue(-1);//toggle
-					updated = (p.ParsePatch(-1) > 0);
+					p.SkipReceiveEns(true);
+					updated = (p.ParsePatch(-1) > 0) | ToggleArmTrackEnv_Sends(tr, 0); // don't short-circuit
 					break;
 				case 1:
 					p.SetNewValue(1);//arm
-					updated = (p.ParsePatch(-1) > 0); 
+					p.SkipReceiveEns(true);
+					updated = (p.ParsePatch(-1) > 0) | ToggleArmTrackEnv_Sends(tr, 1);
 					break;
 				case 2:
 					p.SetNewValue(0); //disarm
-					updated = (p.ParsePatch(-1) > 0);
+					p.SkipReceiveEns(true);
+					updated = (p.ParsePatch(-1) > 0) | ToggleArmTrackEnv_Sends(tr, 2);
 					break;
 				// track vol/pan/mute envs
 				case 3:
