@@ -31,6 +31,7 @@
 #include "SnM_FX.h"
 #include "SnM_Track.h"
 #include "SnM_Util.h"
+#include "cfillion/cfillion.hpp"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -101,14 +102,31 @@ bool SetOrToggleFXBypassSelTracks(const char* _undoMsg, int _mode, int _fxCmdId,
 							}
 						}
 						break;
-					case 2: // toggle
-						if (fxId < fxcnt)
+					case 2: // toggle selected fx
+					{
+						// Get handle to FX window for this track
+						HWND fxChain = CF_GetTrackFXChain(tr);
+						if(fxChain)
 						{
-							if (_undoMsg && !updated)
-								Undo_BeginBlock2(NULL);
-							TrackFX_SetEnabled(tr, fxId, !TrackFX_GetEnabled(tr, fxId));
-							updated = true;
+							int index=-1;
+							// enumerate selected FX
+							while( (index = CF_EnumSelectedFX(fxChain, index)) >= 0)
+							{
+								if (_undoMsg && !updated)
+									Undo_BeginBlock2(NULL);
+								// toggle enabled state
+								TrackFX_SetEnabled(tr, index, !TrackFX_GetEnabled(tr, index));
+								updated = true;
+							}
 						}
+						else if(fxId < fxcnt)
+						{
+							  if (_undoMsg && !updated)
+								  Undo_BeginBlock2(NULL);
+							  TrackFX_SetEnabled(tr, fxId, !TrackFX_GetEnabled(tr, fxId));
+							  updated = true;
+						}
+					}
 						break;
 					case 3: // set
 						if (fxId < fxcnt && _val != TrackFX_GetEnabled(tr, fxId))
