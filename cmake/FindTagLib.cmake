@@ -22,12 +22,7 @@ else()
 
   set(BUILD_BINDINGS OFF CACHE BOOL "Build TagLib C bindings")
 
-  # Prevent TagLib from attempting to link against boost (v1.11.1 and older)
-  set(CMAKE_DISABLE_FIND_PACKAGE_Boost ON)
-
-  set(CMAKE_POLICY_DEFAULT_CMP0048 NEW)
   set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)
-  set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
   add_subdirectory(${TagLib_SOURCE_DIR} EXCLUDE_FROM_ALL)
 
   mark_as_advanced(
