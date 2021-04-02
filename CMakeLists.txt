@@ -147,6 +147,7 @@ add_library(sws SHARED
   Utility/Base64.cpp
   Utility/envelope.cpp
   Utility/hidpi.cpp
+  Utility/RazorEditArea.cpp
   Zoom.cpp
 )
 
