@@ -30,6 +30,7 @@
 #include "stdafx.h"
 #include "Context.h"
 #include "../SnM/SnM_Routing.h"
+#include "../Utility/RazorEditArea.hpp"
 
 bool AreThereSelItemsInTimeSel()
 {
@@ -69,37 +70,39 @@ bool AreThereItemsUnderCursor(bool bSel)
 void SmartCopy(COMMAND_T* ct)
 {
 	if (GetCursorContext() == 1 && AreThereSelItemsInTimeSel())
-		Main_OnCommand(40060, 0); // Copy sel area of items
+		Main_OnCommand(40060, 0); // Copy sel area of items (handles razor edit area(s) (rea), but pass through if rea present, see below)
 	else if (GetCursorContext() == 0)
 		CopyWithIOs(ct);
-	else
-		Main_OnCommand(40057, 0); // Std copy
+	else // if rea present all items are unselected
+		Main_OnCommand(40057, 0); // Std copy (handles rea)
 }
 
 void SmartCut(COMMAND_T* ct)
 {
 	if (GetCursorContext() == 1 && AreThereSelItemsInTimeSel())
-		Main_OnCommand(40307, 0); // Cut sel area of items
+		Main_OnCommand(40307, 0); // Cut sel area of items (handles rae, but pass through if rae present)
 	else if (GetCursorContext() == 0)
 		CutWithIOs(ct);
 	else
-		Main_OnCommand(40059, 0); // Std cut
+		Main_OnCommand(40059, 0); // Std cut (handles rea)
 }
 
 void SmartRemove(COMMAND_T*)
 {
 	if (GetCursorContext() == 1 && AreThereSelItemsInTimeSel())
-		Main_OnCommand(40312, 0); // Remove sel area of items
+		Main_OnCommand(40312, 0); // Remove sel area of items (handles rae, but pass through if rae present)
 	else
-		Main_OnCommand(40697, 0); // Std remove (w/ prompt)
+		Main_OnCommand(40697, 0); // Std remove (w/ prompt) (handles rea)
 }
 
 void SmartSplit(COMMAND_T*)
 {
 	double t1, t2;
 	GetSet_LoopTimeRange(false, false, &t1, &t2, false);
-	if (AreThereSelItemsInTimeSel() || (t1 != t2 && !CountSelectedMediaItems(0)))
-		Main_OnCommand(40061, 0); // Split at time sel
+	if (AreThereSelItemsInTimeSel() || (t1 != t2 && !CountSelectedMediaItems(0)) 
+		// don't get items which are fully enclosed by a rea, matches AreThereSelItemsInTimeSel() behaviour 
+		|| razor::RazorEditArea::GetMediaItemsCrossingRazorEditAreas(false).size())
+		Main_OnCommand(40061, 0); // Split at time sel (handles rea)
 	else
 		Main_OnCommand(40012, 0); // Std split at cursor
 }
@@ -109,7 +112,8 @@ void SmartSplit2(COMMAND_T*)
 {
 	double t1, t2;
 	GetSet_LoopTimeRange(false, false, &t1, &t2, false);
-	if (AreThereSelItemsInTimeSel() || (t1 != t2 && !CountSelectedMediaItems(0)))
+	if (AreThereSelItemsInTimeSel() || (t1 != t2 && !CountSelectedMediaItems(0)) 
+		|| razor::RazorEditArea::GetMediaItemsCrossingRazorEditAreas(false).size())
 		Main_OnCommand(40061, 0); // Split at time sel
 	else
 		Main_OnCommand(40757, 0); // Split at edit cursor (no change sel)
@@ -118,7 +122,8 @@ void SmartSplit2(COMMAND_T*)
 
 void TripleSplit(COMMAND_T*)
 {
-	if (AreThereSelItemsInTimeSel())
+	if (AreThereSelItemsInTimeSel() 
+		|| razor::RazorEditArea::GetMediaItemsCrossingRazorEditAreas(false).size())
 		Main_OnCommand(40061, 0); // Split at time sel
 	else if (AreThereItemsUnderCursor(false))
 		Main_OnCommand(40012, 0); // Std split at cursor
@@ -128,7 +133,8 @@ void TripleSplit(COMMAND_T*)
 
 void TripleSplit2(COMMAND_T*) // #796, splits at edit cursor also during playback
 {
-	if (AreThereSelItemsInTimeSel())
+	if (AreThereSelItemsInTimeSel() 
+		|| razor::RazorEditArea::GetMediaItemsCrossingRazorEditAreas(false).size())
 		Main_OnCommand(40061, 0); // Split at time sel
 	else if (AreThereItemsUnderCursor(false))
 		Main_OnCommand(40757, 0); // Split at edit cursor (no change sel)
@@ -170,20 +176,26 @@ void SafeTiemSel(COMMAND_T*)
 //!WANT_LOCALIZE_1ST_STRING_BEGIN:sws_actions
 static COMMAND_T g_commandTable[] =
 {
-	{ { DEFACCEL, "SWS: Copy items/tracks/env (obey time selection)" },							"SWS_SMARTCOPY",	SmartCopy, NULL, },
-	{ { DEFACCEL, "SWS: Cut items/tracks/env (obey time selection)" },							"SWS_SMARTCUT",		SmartCut, NULL, },
-	{ { DEFACCEL, "SWS: Remove items/tracks/env, (obey time selection)" },						"SWS_SMARTREMOVE",	SmartRemove, NULL, },
-	{ { DEFACCEL, "SWS: Split items at time selection (if exists), play cursor (during playback), else at edit cursor" },		
-																								"SWS_SMARTSPLIT",	SmartSplit, NULL, },
-	{ { DEFACCEL, "SWS: Split items at time selection (if exists), else at edit cursor (also during playback)" },		
-																								"SWS_SMARTSPLIT2",	SmartSplit2, NULL, },
-	{ { DEFACCEL, "SWS: Split items at time selection, edit cursor, play cursor (during playback), or mouse cursor" },			
-																								"SWS_TRIPLESPLIT",	TripleSplit, NULL, },
-	{ { DEFACCEL, "SWS: Split items at time selection, edit cursor (also during playback), or mouse cursor" },
-																								"SWS_TRIPLESPLIT2",	TripleSplit2, NULL, },
-	{ { DEFACCEL, "SWS: Unselect all items/tracks/env points (depending on focus)" },			"SWS_SMARTUNSEL",	SmartUnsel, NULL, },
-	{ { DEFACCEL, "SWS: Unselect all items/tracks/env points" },								"SWS_UNSELALL",		UnselAll, NULL, },
-	{ { DEFACCEL, "SWS: Set time selection to selected items (skip if time selection exists)" },"SWS_SAFETIMESEL",	SafeTiemSel, NULL, },
+	{ { DEFACCEL, "SWS: Copy items/tracks/env (obey time selection/razor edit areas)" },
+	  "SWS_SMARTCOPY",SmartCopy, NULL, },
+	{ { DEFACCEL, "SWS: Cut items/tracks/env (obey time selection/razor edit areas)" },
+	  "SWS_SMARTCUT",SmartCut, NULL, },
+	{ { DEFACCEL, "SWS: Remove items/tracks/env, (obey time selection/razor edit areas)" },
+	  "SWS_SMARTREMOVE",SmartRemove, NULL, },
+	{ { DEFACCEL, "SWS: Split items at time selection/razor edit areas (if exists), play cursor (during playback), else at edit cursor" },
+	  "SWS_SMARTSPLIT",SmartSplit, NULL, },
+	{ { DEFACCEL, "SWS: Split items at time selection/razor edit areas (if exists), else at edit cursor (also during playback)" },
+	  "SWS_SMARTSPLIT2",SmartSplit2, NULL, },
+	{ { DEFACCEL, "SWS: Split items at time selection/razor edit areas, edit cursor, play cursor (during playback), or mouse cursor" },
+	  "SWS_TRIPLESPLIT",TripleSplit, NULL, },
+	{ { DEFACCEL, "SWS: Split items at time selection/razor edit areas, edit cursor (also during playback), or mouse cursor" },
+	  "SWS_TRIPLESPLIT2",TripleSplit2, NULL, },
+	{ { DEFACCEL, "SWS: Unselect all items/tracks/env points (depending on focus)" },
+	  "SWS_SMARTUNSEL",SmartUnsel, NULL, },
+	{ { DEFACCEL, "SWS: Unselect all items/tracks/env points" },
+	  "SWS_UNSELALL",UnselAll, NULL, },
+	{ { DEFACCEL, "SWS: Set time selection to selected items (skip if time selection exists)" },
+	  "SWS_SAFETIMESEL",SafeTiemSel, NULL, },
 
 	{ {}, LAST_COMMAND, }, // Denote end of table
 };
