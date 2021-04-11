@@ -317,26 +317,24 @@ void CmdSetItemNameMidi::doCommand(int flag)
         RprMidiTake midiItem(ctr->getAt(i).getActiveTake(), true);
         if (midiItem.countNotes() > 0)
         {
-            int pitch = midiItem.getNoteAt(0)->getPitch();
+            int pitch = midiItem.getNoteAt(0)->getPitch(), pitchOffsetted = pitch;
+            // in reaper.ini: midioctoffs = 0 => offset set in REAPER prefs = -1
+            if (octOffset != -666 && octOffset != 1) 
+                pitchOffsetted = pitchOffsetted + (12 * (octOffset - 1));
 
-						// in reaper.ini: midioctoffs = 0 => offset set in REAPER prefs = -1
-						if (octOffset != -666 && octOffset != 1) {
-							pitch = pitch + (12 * (octOffset - 1));
-						}
-			
             static const char* noteNames[] = {"C", "C#", "D", "D#",
                 "E", "F", "F#", "G", "G#", "A", "A#", "B"};
             int nameIndex = pitch % 12;
 
             char octave[12];
-            snprintf(octave, sizeof(octave), "%d", pitch / 12 - 1);
+            snprintf(octave, sizeof(octave), "%d", pitchOffsetted / 12 - 1);
 
             char noteName[2 + sizeof(octave)];
             strcpy(noteName, noteNames[nameIndex]);
             strcat(noteName, octave);
 
             ctr->getAt(i).getActiveTake().setName(noteName);
-				}
+        }
     }
 }
 
