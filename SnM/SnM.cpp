@@ -813,11 +813,11 @@ bool DYN_COMMAND_T::Register(const int slot) const
 void SaveDynamicActions()
 {
 	// no localization here, intentional
-	WDL_FastString iniSection, str;
-	iniSection.Set("; Set the number of actions you want below. Quit REAPER first! ===\n");
-	iniSection.AppendFormatted(512, "; Unless specified, the maximum number of actions is %d (0 will hide actions). ===\n", SNM_MAX_DYN_ACTIONS);
+	std::ostringstream iniSection;
+	iniSection << "; Set the number of actions you want below. Quit REAPER first! ===" << '\0';
+	iniSection << "; Unless specified, the maximum number of actions is " << SNM_MAX_DYN_ACTIONS << " (0 will hide actions). ===" << '\0';
 
-	WDL_String nameStr; // no fast string here: mangled buffer
+	WDL_String nameStr, str; // no fast string here: mangled buffer
 	for (const DYN_COMMAND_T &ct : s_dynCmdTable)
 	{
 		KbdSectionInfo* sec = SectionFromUniqueID(ct.uniqueSectionId);
@@ -833,11 +833,9 @@ void SaveDynamicActions()
 		str.SetFormatted(256, "%s=%d", ct.id, ct.count);
 		while (str.GetLength() < 40) str.Append(" ");
 		str.Append(" ; ");
-		iniSection.Append(str.Get());
-		iniSection.Append(nameStr.Get());
-		iniSection.Append("\n");
+		iniSection << str.Get() << nameStr.Get() << '\0';
 	}
-	SaveIniSection("NbOfActions", &iniSection, g_SNM_IniFn.Get());
+	SaveIniSection("NbOfActions", iniSection.str(), g_SNM_IniFn.Get());
 }
 
 DYN_COMMAND_T *FindDynamicAction(void (*doCommand)(COMMAND_T*))
@@ -1142,29 +1140,33 @@ void IniFileInit()
 
 void IniFileExit()
 {
-	WDL_FastString iniSection;
+	std::ostringstream iniSection;
+
+	char version[64];
+	snprintf(version, sizeof(version), "v%d.%d.%d Build %d", SWS_VERSION);
 
 	// debug info
 	// note: the character '=' is needed, SWELL's WritePrivateProfileSection() would drop these comments otherwise
-	iniSection.AppendFormatted(128, "; REAPER v%s ===\n", GetAppVersion()); 
-	iniSection.AppendFormatted(128, "; SWS/S&M Extension v%d.%d.%d Build %d ===\n", SWS_VERSION); 
-	iniSection.Append("; "); 
-	iniSection.Append(g_SNM_IniFn.Get()); 
-	iniSection.Append(" ===\n");
+	iniSection
+		<< "; REAPER v" << GetAppVersion() << " ===" << '\0'
+		<< "; SWS/S&M Extension " << version << " ===" << '\0'
+		<< "; " << g_SNM_IniFn.Get() << " ===" << '\0'
 
 	// general prefs
-	iniSection.AppendFormatted(128, "IniFileUpgrade=%d\n", SNM_INI_FILE_VERSION); 
-	iniSection.AppendFormatted(128, "MediaFileLockAudio=%d\n", g_SNM_MediaFlags&1 ? 1:0); 
-	iniSection.AppendFormatted(128, "ToolbarsAutoRefresh=%d\n", g_SNM_ToolbarRefresh ? 1:0); 
-	iniSection.AppendFormatted(128, "ToolbarsAutoRefreshFreq=%d ; in ms (min: 100, max: 5000)\n", g_SNM_ToolbarRefreshFreq);
-	iniSection.AppendFormatted(128, "BuggyPlugsSupport=%d\n", g_SNM_SupportBuggyPlug ? 1:0);
+		<< "IniFileUpgrade=" << SNM_INI_FILE_VERSION << '\0'
+		<< "MediaFileLockAudio=" << (g_SNM_MediaFlags&1 ? 1 : 0) << '\0'
+		<< "ToolbarsAutoRefresh=" << (g_SNM_ToolbarRefresh ? 1 : 0) << '\0'
+		<< "ToolbarsAutoRefreshFreq=" << g_SNM_ToolbarRefreshFreq << " ; in ms (min: 100, max: 5000)" << '\0'
+		<< "BuggyPlugsSupport=" << (g_SNM_SupportBuggyPlug ? 1 : 0) << '\0'
 #ifdef _WIN32
-	iniSection.AppendFormatted(128, "ClearTypeFont=%d\n", g_SNM_ClearType ? 1:0);
-	iniSection.AppendFormatted(SNM_MAX_PATH, "DiffTool=\"%s\"\n", g_SNM_DiffToolFn.Get());
+		<< "ClearTypeFont=" << (g_SNM_ClearType ? 1 : 0) << '\0'
+		<< "DiffTool=\"" << g_SNM_DiffToolFn.Get() << '"' << '\0'
 #endif
-	iniSection.AppendFormatted(128, "LearnPitchAndNormOSC=%d\n", g_SNM_LearnPitchAndNormOSC); 
-	iniSection.AppendFormatted(128, "Beta=%d\n", g_SNM_Beta); 
-	SaveIniSection("General", &iniSection, g_SNM_IniFn.Get());
+		<< "LearnPitchAndNormOSC=" << g_SNM_LearnPitchAndNormOSC << '\0'
+		<< "Beta=" << g_SNM_Beta << '\0'
+	;
+
+	SaveIniSection("General", iniSection.str(), g_SNM_IniFn.Get());
 
 	// save dynamic actions, if needed
 	SaveDynamicActions();

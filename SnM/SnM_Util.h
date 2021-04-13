@@ -60,7 +60,7 @@ void ScanFiles(WDL_PtrList<WDL_String>* _files, const char* _initDir, const char
 void StringToExtensionConfig(WDL_FastString* _str, ProjectStateContext* _ctx);
 void ExtensionConfigToString(WDL_FastString* _str, ProjectStateContext* _ctx);
 
-void SaveIniSection(const char* _iniSectionName, WDL_FastString* _iniSection, const char* _iniFn);
+bool SaveIniSection(const char* _iniSectionName, const std::string& _iniSection, const char* _iniFn);
 void UpdatePrivateProfileSection(const char* _oldAppName, const char* _newAppName, const char* _iniFn, const char* _newIniFn = NULL);
 void UpdatePrivateProfileString(const char* _appName, const char* _oldKey, const char* _newKey, const char* _iniFn, const char* _newIniFn = NULL);
 void SNM_UpgradeIniFiles(int _iniVersion);

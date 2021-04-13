@@ -3293,95 +3293,99 @@ void ResourcesExit()
 {
 	plugin_register("-projectconfig", &s_projectconfig);
 
-	WDL_FastString iniStr, escapedStr;
 	WDL_PtrList_DeleteOnDestroy<WDL_FastString> iniSections;
 	GetIniSectionNames(&iniSections);
 
-
 	// *** save the main ini section
 
-	iniStr.Set("");
+	std::ostringstream iniSection;
 
 	// save custom slot type definitions
 	for (int i=0; i < g_SNM_ResSlots.GetSize(); i++)
 	{
 		if (i >= SNM_NUM_DEFAULT_SLOTS)
 		{
-			iniStr.AppendFormatted(8192, "%s=\"%s,%s,%s\"\n",
-				iniSections.Get(i)->Get(),
-				g_SNM_ResSlots.Get(i)->GetResourceDir(),
-				g_SNM_ResSlots.Get(i)->GetName(),
-				g_SNM_ResSlots.Get(i)->GetFileExtStr());
+			iniSection << iniSections.Get(i)->Get() << "=\""
+			           << g_SNM_ResSlots.Get(i)->GetResourceDir() << ','
+			           << g_SNM_ResSlots.Get(i)->GetName() << ','
+			           << g_SNM_ResSlots.Get(i)->GetFileExtStr() << '"' << '\0';
 		}
 	}
-	iniStr.AppendFormatted(256, "Type=%d\n", g_resType);
-	iniStr.AppendFormatted(256, "Filter=%d\n", g_filterPref);
+	iniSection << "Type=" << g_resType << '\0';
+	iniSection << "Filter=" << g_filterPref << '\0';
 
 	// save slot type prefs
 	for (int i=0; i < g_SNM_ResSlots.GetSize(); i++)
 	{
 		// save auto-fill & auto-save paths
 		if (g_autoFillDirs.Get(i)->GetLength())
-			iniStr.AppendFormatted(SNM_MAX_PATH, "AutoFillDir%s=\"%s\"\n", iniSections.Get(i)->Get(), g_autoFillDirs.Get(i)->Get());
+			iniSection << "AutoFillDir" << iniSections.Get(i)->Get() << "=\""
+			           << g_autoFillDirs.Get(i)->Get() << '"' << '\0';
 
 		if (g_autoSaveDirs.Get(i)->GetLength() && g_SNM_ResSlots.Get(i)->IsAutoSave())
-			iniStr.AppendFormatted(SNM_MAX_PATH, "AutoSaveDir%s=\"%s\"\n", iniSections.Get(i)->Get(), g_autoSaveDirs.Get(i)->Get());
+			iniSection << "AutoSaveDir" << iniSections.Get(i)->Get() << "=\""
+			           << g_autoSaveDirs.Get(i)->Get() << '"' << '\0';
 
-		iniStr.AppendFormatted(256, "SyncAutoDirs%s=%d\n", iniSections.Get(i)->Get(), g_syncAutoDirPrefs[i]);
+		iniSection << "SyncAutoDirs" << iniSections.Get(i)->Get() << '='
+		           << g_syncAutoDirPrefs[i] << '\0';
 
 		// default type? (fx chains, track templates, etc...)
 		if (i < SNM_NUM_DEFAULT_SLOTS)
 		{
 			// save tied slot actions
-			iniStr.AppendFormatted(256, "TiedActions%s=%d\n", iniSections.Get(i)->Get(), g_tiedSlotActions[i]);
+			iniSection << "TiedActions" << iniSections.Get(i)->Get() << '='
+			           << g_tiedSlotActions[i] << '\0';
 		}
 		// bookmark, custom type?
 		else
 		{
 			// save tied project
 			if (g_tiedProjects.Get(i)->GetLength())
-				iniStr.AppendFormatted(SNM_MAX_PATH, "TiedProject%s=\"%s\"\n", iniSections.Get(i)->Get(), g_tiedProjects.Get(i)->Get());
+				iniSection << "TiedProject" << iniSections.Get(i)->Get() << "=\""
+				           << g_tiedProjects.Get(i)->Get() << '"' << '\0';
 		}
 
 		// dbl-click pref
 		if (g_SNM_ResSlots.Get(i)->IsDblClick())
-			iniStr.AppendFormatted(256, "DblClick%s=%d\n", iniSections.Get(i)->Get(), g_dblClickPrefs[i]);
+			iniSection << "DblClick" << iniSections.Get(i)->Get() << '='
+			           << g_dblClickPrefs[i] << '\0';
 
 		// specific options (just for the ini file ordering..)
 		switch (i)
 		{
 			case SNM_SLOT_FXC:
-				iniStr.AppendFormatted(256, "AutoSaveFXChain=%d\n", g_asFXChainPref);
-				iniStr.AppendFormatted(256, "AutoSaveFXChainName=%d\n", g_asFXChainNamePref);
+				iniSection << "AutoSaveFXChain=" << g_asFXChainPref << '\0';
+				iniSection << "AutoSaveFXChainName=" << g_asFXChainNamePref << '\0';
 				break;
 			case SNM_SLOT_TR:
-				iniStr.AppendFormatted(256, "AutoSaveTrTemplate=%d\n", g_asTrTmpltPref);
+				iniSection << "AutoSaveTrTemplate=" << g_asTrTmpltPref << '\0';
 				break;
 			case SNM_SLOT_MEDIA:
-				iniStr.AppendFormatted(256, "AddMediaFileOptions=%d\n", g_addMedPref);
+				iniSection << "AddMediaFileOptions=" << g_addMedPref << '\0';
 				break;
 		}
 	}
-	SaveIniSection(RES_INI_SEC, &iniStr, g_SNM_IniFn.Get());
+	SaveIniSection(RES_INI_SEC, iniSection.str(), g_SNM_IniFn.Get());
 
 
 	// *** save slots ini sections
 
 	for (int i=0; i < g_SNM_ResSlots.GetSize(); i++)
 	{
-		iniStr.SetFormatted(256, "Max_slot=%d\n", g_SNM_ResSlots.Get(i)->GetSize());
+		iniSection.str({});
+		iniSection << "Max_slot=" << g_SNM_ResSlots.Get(i)->GetSize() << '\0';
 		for (int j=0; j < g_SNM_ResSlots.Get(i)->GetSize(); j++)
 		{
 			if (ResourceItem* item = g_SNM_ResSlots.Get(i)->Get(j))
 			{
 				if (item->m_shortPath.GetLength())
-					iniStr.AppendFormatted(SNM_MAX_PATH, "Slot%d=\"%s\"\n", j+1, item->m_shortPath.Get());
+					iniSection << "Slot" << (j+1) << "=\"" << item->m_shortPath.Get() << '"' << '\0';
 				if (item->m_comment.GetLength())
-					iniStr.AppendFormatted(256, "Desc%d=\"%s\"\n", j+1, item->m_comment.Get());
+					iniSection << "Desc" << (j+1) << "=\"" << item->m_comment.Get() << '"' << '\0';
 			}
 		}
 		// write things in one go (avoid to slow down REAPER shutdown)
-		SaveIniSection(iniSections.Get(i)->Get(), &iniStr, g_SNM_IniFn.Get());
+		SaveIniSection(iniSections.Get(i)->Get(), iniSection.str(), g_SNM_IniFn.Get());
 	}
 
 	g_resWndMgr.Delete();

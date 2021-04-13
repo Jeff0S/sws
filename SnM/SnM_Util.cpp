@@ -521,20 +521,13 @@ void ExtensionConfigToString(WDL_FastString* _str, ProjectStateContext* _ctx)
 // write a full ini file section in one go
 // "the data in the buffer pointed to by the lpString parameter consists 
 // of one or more null-terminated strings, followed by a final null character"
-void SaveIniSection(const char* _iniSectionName, WDL_FastString* _iniSection, const char* _iniFn)
+bool SaveIniSection(const char* _iniSectionName, const std::string& _iniSection, const char* _iniFn)
 {
-	if (_iniSectionName && _iniSection && _iniFn)
-	{
-		if (char* buf = (char*)calloc(_iniSection->GetLength()+1, sizeof(char)))  // +1 for dbl-null termination
-		{
-			memcpy(buf, _iniSection->Get(), _iniSection->GetLength());
-			for (int j=0; j < _iniSection->GetLength(); j++)
-				if (buf[j] == '\n') buf[j] = '\0';
-			WritePrivateProfileStruct(_iniSectionName, NULL, NULL, 0, _iniFn); // flush section
-			WritePrivateProfileSection(_iniSectionName, buf, _iniFn);
-			free(buf);
-		}
-	}
+	if (!_iniSectionName || !_iniFn)
+		return false;
+
+	WritePrivateProfileStruct(_iniSectionName, nullptr, nullptr, 0, _iniFn); // flush section
+	return WritePrivateProfileSection(_iniSectionName, _iniSection.c_str(), _iniFn);
 }
 
 void UpdatePrivateProfileSection(const char* _oldAppName, const char* _newAppName, const char* _iniFn, const char* _newIniFn)
