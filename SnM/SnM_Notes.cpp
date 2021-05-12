@@ -287,6 +287,23 @@ void NotesWnd::RefreshGUI()
 	m_parentVwnd.RequestRedraw(NULL); // the meat!
 }
 
+void NotesWnd::SetFontsizeFrominiFile()
+{
+	int notesFontsize = GetPrivateProfileInt(NOTES_INI_SEC, "Fontsize", -666, g_SNM_IniFn.Get());
+	if (notesFontsize != -666)
+	{
+		// first try to get current font, if this doesn't work use theme font as fallback
+		HFONT hfont = (HFONT)SendMessage(m_edit, WM_GETFONT, 0, 0);
+		if (!hfont)
+			hfont = SNM_GetThemeFont()->GetHFont();
+
+		LOGFONT lf;
+		GetObject(hfont, sizeof(lf), &lf);
+		lf.lfHeight = notesFontsize;
+		SendMessage(m_edit, WM_SETFONT, (WPARAM)CreateFontIndirect(&lf), TRUE);
+	}
+}
+
 void NotesWnd::SetWrapText(const bool wrap)
 {
 	g_wrapText = wrap;
@@ -294,6 +311,7 @@ void NotesWnd::SetWrapText(const bool wrap)
 	char buf[sizeof(g_lastText)]{};
 	GetWindowText(m_edit, buf, sizeof(buf));
 	m_edit = GetDlgItem(m_hwnd, wrap ? IDC_EDIT2 : IDC_EDIT1);
+	SetFontsizeFrominiFile();
 	SetWindowText(m_edit, buf);
 
 #ifdef _WIN32
