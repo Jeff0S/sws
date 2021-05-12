@@ -1096,6 +1096,8 @@ bool BR_Win32_WritePrivateProfileString(const char* sectionName, const char* key
 {
 	if (!strlen(keyName))
 		return 0;
+	if (value && !strlen(value)) // delete key if passing an empty string
+		value = nullptr;
 
 	return !!WritePrivateProfileString(sectionName, keyName, value, filePath);
 }

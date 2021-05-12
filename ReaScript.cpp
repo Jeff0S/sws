@@ -244,8 +244,8 @@ APIdef g_apidefs[] =
 	{ APIFUNC(BR_Win32_GetMixerHwnd), "void*", "bool*", "isDockedOut", "[BR] Get mixer window HWND. isDockedOut will be set to true if mixer is docked", },
 	{ APIFUNC(BR_Win32_GetMonitorRectFromRect), "void", "bool,int,int,int,int,int*,int*,int*,int*", "workingAreaOnly,leftIn,topIn,rightIn,bottomIn,leftOut,topOut,rightOut,bottomOut", "[BR] Get coordinates for screen which is nearest to supplied coordinates. Pass workingAreaOnly as true to get screen coordinates excluding taskbar (or menu bar on OSX).", },
 	{ APIFUNC(BR_Win32_GetParent), "void*", "void*", "hwnd", "[BR] Equivalent to win32 API GetParent().", },
-	{ APIFUNC(BR_Win32_GetPrivateProfileString), "int", "const char*,const char*,const char*,const char*,char*,int", "sectionName,keyName,defaultString,filePath,stringOut,stringOut_sz", "[BR] Equivalent to win32 API GetPrivateProfileString(). For example, you can use this to get values from REAPER.ini", },
-	{ APIFUNC(BR_Win32_WritePrivateProfileString), "bool", "const char*,const char*,const char*,const char*", "sectionName,keyName,value,filePath", "[BR] Equivalent to win32 API WritePrivateProfileString(). For example, you can use this to write to REAPER.ini", },
+	{ APIFUNC(BR_Win32_GetPrivateProfileString), "int", "const char*,const char*,const char*,const char*,char*,int", "sectionName,keyName,defaultString,filePath,stringOut,stringOut_sz", "[BR] Equivalent to win32 API GetPrivateProfileString(). For example, you can use this to get values from REAPER.ini.", },
+	{ APIFUNC(BR_Win32_WritePrivateProfileString), "bool", "const char*,const char*,const char*,const char*", "sectionName,keyName,value,filePath", "[BR] Equivalent to win32 API WritePrivateProfileString(). For example, you can use this to write to REAPER.ini. You can pass an empty string as value to delete a key.", },
 
 	{ APIFUNC(BR_Win32_GetWindow), "void*", "void*,int", "hwnd,cmd", "[BR] Equivalent to win32 API GetWindow().", },
 	{ APIFUNC(BR_Win32_GetWindowLong), "int", "void*,int", "hwnd,index", "[BR] Equivalent to win32 API GetWindowLong().", },
