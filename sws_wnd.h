@@ -86,7 +86,7 @@ public:
 	virtual void OnEndDrag() {}
 	int EditingKeyHandler(MSG *msg);
 	int LVKeyHandler(MSG *msg, int iKeyState);
-	virtual void Update();
+	void Update(bool reassign = false);
 	bool DoColumnMenu(int x, int y);
 	bool HeaderHitTest(const POINT &) const;
 	SWS_ListItem* GetHitItem(int x, int y, int* iCol);

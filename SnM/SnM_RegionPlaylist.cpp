@@ -438,8 +438,7 @@ void RegionPlaylistView::OnDrag()
 			pl->Insert(iNewPriority, m_draggedItems.Get(i));
 		}
 
-		ListView_DeleteAllItems(m_hwndList); // because of the special sort criteria ("not sortable" somehow)
-		Update(); // no UpdateCompact() here, it would crash! see OnEndDrag()
+		Update(true); // no UpdateCompact() here, it would crash! see OnEndDrag()
 
 		for (int i=0; i < m_draggedItems.GetSize(); i++)
 			SelectByItem((SWS_ListItem*)m_draggedItems.Get(i), i==0, i==0);

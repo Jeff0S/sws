@@ -1890,8 +1890,7 @@ void CommandsView::OnDrag()
 				g_editedAction->InsertCmd(iNewPriority, draggedItems.Get(i));
 			}
 
-			ListView_DeleteAllItems(m_hwndList); // because of the special sort criteria ("not sortable" somehow)
-			Update();
+			Update(true);
 
 			for (int i=0; i < draggedItems.GetSize(); i++)
 				SelectByItem((SWS_ListItem*)draggedItems.Get(i), i==0, i==0);

@@ -1170,7 +1170,7 @@ int SWS_ListView::LVKeyHandler(MSG* msg, int iKeyState)
 	return 0;
 }
 
-void SWS_ListView::Update()
+void SWS_ListView::Update(const bool reassign)
 {
 	// Fill in the data by pulling it from the derived class
 	if (m_iEditingItem == -1 && !m_bDisableUpdates)
@@ -1251,6 +1251,13 @@ void SWS_ListView::Update()
 			item.iItem = bFound ? i : newIndex++;
 			item.pszText = str;
 
+			if (reassign) {
+				// update list view item/internal data item association
+				// (eg. after reordering the internal list on drag/drop)
+				item.mask |= LVIF_PARAM;
+				item.lParam = reinterpret_cast<LPARAM>(pItem);
+			}
+
 			int iCol = 0;
 			for (int k = 0; k < m_iCols; k++)
 				if (m_pCols[k].iPos != -1)
@@ -1261,7 +1268,7 @@ void SWS_ListView::Update()
 					{
 						item.mask |= LVIF_TEXT;
 						if(iCol == 0) {
-							item.mask |= LVIF_PARAM | LVIF_TEXT;
+							item.mask |= LVIF_PARAM;
 							item.lParam = reinterpret_cast<LPARAM>(pItem);
 							ListView_InsertItem(m_hwndList, &item);
 						}
