@@ -95,6 +95,7 @@ void ExecuteTrackSelAction ();
 void SetProjectTrackSelAction (COMMAND_T*);
 void ShowProjectTrackSelAction (COMMAND_T*);
 void ClearProjectTrackSelAction (COMMAND_T*);
+SWSProjConfig<WDL_FastString>* GetProjectTrackSelectionAction(); // for ReaScript export
 
 /******************************************************************************
 * Toggle states: Misc                                                         *

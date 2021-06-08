@@ -54,39 +54,18 @@ void           NF_UpdateSWSMarkerRegionSubWindow();
 bool           NF_TakeFX_GetFXModuleName(MediaItem* item, int fx, char* nameOut, int nameOutSz);
 int            NF_Win32_GetSystemMetrics(int nIndex);
 
-
 // #974
-/*
-void            NF_GetGlobalStartupAction_Desc(char *buf, int bufSize);
-void            NF_GetGlobalStartupAction_CmdID(char *buf, int bufSize);
-bool            NF_SetGlobalStartupAction(const char* buf);
-bool            NF_ClearGlobalStartupAction();
+void           NF_GetGlobalStartupAction_Desc(char *buf, int bufSize);
+void           NF_GetGlobalStartupAction_CmdID(char *buf, int bufSize);
+bool           NF_SetGlobalStartupAction(const char* buf);
+bool           NF_ClearGlobalStartupAction();
 
-void            NF_GetProjectStartupAction_Desc(char *buf, int bufSize);
-void            NF_GetProjectStartupAction_CmdID(char *buf, int bufSize);
-bool            NF_SetProjectStartupAction(const char* buf);
-bool            NF_ClearProjectStartupAction();
+void           NF_GetProjectStartupAction_Desc(char *buf, int bufSize);
+void           NF_GetProjectStartupAction_CmdID(char *buf, int bufSize);
+bool           NF_SetProjectStartupAction(const char* buf);
+bool           NF_ClearProjectStartupAction();
 
-// ReaScript.cpp
-	// #974 Global/project startup actions
-	{ APIFUNC(NF_GetGlobalStartupAction_Desc), "void", "char*,int", "buf,buf_sz", "Returns action description if global startup action is set, otherwise empty string.", },
-	{ APIFUNC(NF_GetGlobalStartupAction_CmdID), "void", "char*,int", "buf,buf_sz", "Returns command ID number (for native actions) or named command IDs / identifier strings (for extension actions /ReaScripts) if global startup action is set, otherwise \"0\". Named command IDs start with underscore (\"_...\").", },
-	{ APIFUNC(NF_SetGlobalStartupAction), "bool", "const char*", "str", "Returns true if global startup action was set successfully (i.e. valid action ID). Note: For SWS / S & M actions and macros / scripts, you must use identifier strings (e.g. \"_SWS_ABOUT\", \"_f506bc780a0ab34b8fdedb67ed5d3649\"), not command IDs (e.g. \"47145\").\nTip: to copy such identifiers, right - click the action in the Actions window > Copy selected action cmdID / identifier string.\nNOnly works for actions / scripts from Main action section.", },
-	{ APIFUNC(NF_ClearGlobalStartupAction), "bool", "", "", "Returns true if global startup action was cleared successfully.", },
-	{ APIFUNC(NF_GetProjectStartupAction_Desc), "void", "char*,int", "buf,buf_sz", "Returns action description if project startup action is set, otherwise empty string", },
-	{ APIFUNC(NF_GetProjectStartupAction_CmdID), "void", "char*,int", "buf,buf_sz", "Returns command ID number (for native actions) or named command IDs / identifier strings (for extension actions /ReaScripts) if project startup action is set, otherwise \"0\". Named command IDs start with underscore (\"_...\").", },
-	{ APIFUNC(NF_SetProjectStartupAction), "bool", "const char*", "str", "Returns true if project startup action was set successfully (i.e. valid action ID). Note: For SWS / S & M actions and macros / scripts, you must use identifier strings (e.g. \"_SWS_ABOUT\", \"_f506bc780a0ab34b8fdedb67ed5d3649\"), not command IDs (e.g. \"47145\").\nTip: to copy such identifiers, right - click the action in the Actions window > Copy selected action cmdID / identifier string.\nOnly works for actions / scripts from Main action section. Project must be saved after setting project startup action to be persistent.", },
-	{ APIFUNC(NF_ClearProjectStartupAction), "bool", "", "", "Returns true if project startup action was cleared successfully.", },
-
-// whatsnew.txt
-+Issue 974 (Lua example https://github.com/reaper-oss/sws/issues/974#issuecomment-386480161|here|):
- -NF_GetGlobalStartupAction_Desc()
- -NF_GetGlobalStartupAction_CmdID()
- -NF_SetGlobalStartupAction()
- -NF_ClearGlobalStartupAction()
- -NF_GetProjectStartupAction_Desc()
- -NF_GetProjectStartupAction_CmdID()
- -NF_SetProjectStartupAction()
- -NF_ClearProjectStartupAction()
-*/
-
+void           NF_GetProjectTrackSelectionAction_Desc(char* buf, int bufSize);
+void           NF_GetProjectTrackSelectionAction_CmdID(char* buf, int bufSize);
+bool           NF_SetProjectTrackSelectionAction(const char* buf);
+bool           NF_ClearProjectTrackSelectionAction();

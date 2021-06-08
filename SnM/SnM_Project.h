@@ -59,6 +59,8 @@ void GlobalStartupActionTimer();
 void SetStartupAction(COMMAND_T*);
 void ClearStartupAction(COMMAND_T*);
 void ShowStartupActions(COMMAND_T*);
+WDL_FastString* GetGlobalStartupAction(); // for ReaScript export
+SWSProjConfig<WDL_FastString>* GetProjectLoadAction(); // for ReaScript export
 int SNM_ProjectInit();
 void SNM_ProjectExit();
 
