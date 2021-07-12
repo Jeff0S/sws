@@ -1073,7 +1073,12 @@ int RegisterCyclation(Cyclaction* _a, int _section, int _cycleId,
 		sSubCAs.Delete(sSubCAs.Find(_a));
 
 		if (CheckRegisterableCyclaction(_section, _a, _macros, _consoles, _applyMsg))
-			return RegisterCyclation(_a->GetName(), _section, _cycleId, 0);
+		{
+			const int cmdid = RegisterCyclation(_a->GetName(), _section, _cycleId, 0);
+			if (!cmdid && _applyMsg)
+				AppendErrMsg(_section, _a, _applyMsg, __LOCALIZE("failed to be registered in the action list (you may have hit the global action limit)","sws_DLG_161"));
+			return cmdid;
+		}
 	}
 	return 0;
 }
