@@ -30,11 +30,11 @@
 template<typename T>
 class ConfigVar {
 public:
-  ConfigVar(const char *name, ReaProject *project = NULL)
-    : m_addr(NULL)
+  ConfigVar(const char *name, ReaProject *project = nullptr)
+    : m_name{name}, m_addr{}
   {
     int size = 0;
-    void *addr = NULL;
+    void *addr = nullptr;
 
     if(const int offset = projectconfig_var_getoffs(name, &size))
       addr = projectconfig_var_addr(project, offset);
@@ -45,7 +45,7 @@ public:
       m_addr = static_cast<T *>(addr);
   }
 
-  explicit operator bool() const { return m_addr != NULL; }
+  explicit operator bool() const { return m_addr != nullptr; }
 
   T &operator*() { return *m_addr; }
   const T &operator*() const { return *m_addr; }
@@ -66,7 +66,10 @@ public:
     return true;
   }
 
+  void save();
+
 private:
+  const char *m_name;
   T *m_addr;
 };
 
@@ -74,7 +77,7 @@ template<typename T>
 class ConfigVarOverride {
 public:
   ConfigVarOverride(ConfigVar<T> var, const T tempValue)
-    : m_var(var)
+    : m_var{var}
   {
     if(m_var) {
       m_initialValue = *m_var;

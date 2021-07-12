@@ -1109,138 +1109,95 @@ void SnapFollowsGridVis (COMMAND_T* ct)
 
 void PlaybackFollowsTempoChange (COMMAND_T* ct)
 {
-	const char* configStr = "seekmodes";
-	ConfigVar<int> option(configStr);
+	ConfigVar<int> option{"seekmodes"};
 	if(!option) return;
-
 	*option = ToggleBit(*option, 5);
+	option.save();
 	RefreshToolbar(0);
-
-	char tmp[256];
-	snprintf(tmp, sizeof(tmp), "%d", *option);
-	WritePrivateProfileString("reaper", configStr, tmp, get_ini_file());
 }
 
 void TrimNewVolPanEnvs (COMMAND_T* ct)
 {
-	const char* configStr = "envtrimadjmode";
-	ConfigVar<int>(configStr).try_set((int)ct->user);
+	ConfigVar<int> option{"envtrimadjmode"};
+	if(!option) return;
+	*option = (int)ct->user;
+	option.save();
 	RefreshToolbar(0);
-
-	char tmp[256];
-	snprintf(tmp, sizeof(tmp), "%d", (int)ct->user);
-	WritePrivateProfileString("reaper", configStr, tmp, get_ini_file());
 }
 
 void ToggleDisplayItemLabels (COMMAND_T* ct)
 {
-	const char* configStr = "labelitems2";
-
-	ConfigVar<int> option(configStr);
+	ConfigVar<int> option{"labelitems2"};
 	if(!option) return;
 	*option = ToggleBit(*option, (int)ct->user);
-
-	char tmp[256];
-	snprintf(tmp, sizeof(tmp), "%d", *option);
-	WritePrivateProfileString("reaper", configStr, tmp, get_ini_file());
-
+	option.save();
 	UpdateArrange();
 }
 
 void SetMidiResetOnPlayStop (COMMAND_T* ct)
 {
-	const char* configStr = "midisendflags";
-
-	ConfigVar<int> option(configStr);
+	ConfigVar<int> option{"midisendflags"};
 	if(!option) return;
 	*option = ToggleBit(*option, (int)ct->user);
-
-	char tmp[256];
-	snprintf(tmp, sizeof(tmp), "%d", *option);
-	WritePrivateProfileString("reaper", configStr, tmp, get_ini_file());
+	option.save();
 }
 
 void SetOptionsFX (COMMAND_T* ct)
 {
 	if ((int)ct->user == 1)
 	{
-		const char* configStr = "runallonstop";
-		ConfigVar<int> option(configStr);
+		ConfigVar<int> runallonstop{"runallonstop"};
 
 		// Set only if "Run FX when stopped" is turned on (otherwise the option is disabled so we don't allow the user to change it)
-		if (option && GetBit(*option, 0))
+		if (runallonstop && GetBit(*runallonstop, 0))
 		{
-			*option = ToggleBit(*option, 3);
-
-			char tmp[256];
-			snprintf(tmp, sizeof(tmp), "%d", *option);
-			WritePrivateProfileString("reaper", configStr, tmp, get_ini_file());
+			*runallonstop = ToggleBit(*runallonstop, 3);
+			runallonstop.save();
 		}
 	}
 	else if ((int)ct->user == 2)
 	{
-		const char* configStr = "loopstopfx";
-		ConfigVar<int> option(configStr);
-		if(!option) return;
-
-		*option = ToggleBit(*option, 0);
-
-		char tmp[256];
-		snprintf(tmp, sizeof(tmp), "%d", *option);
-		WritePrivateProfileString("reaper", configStr, tmp, get_ini_file());
+		ConfigVar<int> loopstopfx{"loopstopfx"};
+		if(!loopstopfx) return;
+		*loopstopfx = ToggleBit(*loopstopfx, 0);
+		loopstopfx.save();
 	}
 	else
 	{
 		const ConfigVar<int> runallonstop("runallonstop");
 
-		// Set only if "Run FX when stopped" is turned of (otherwise the option is disabled so we don't allow the user to change it)
+		// Set only if "Run FX when stopped" is turned off (otherwise the option is disabled so we don't allow the user to change it)
 		if (runallonstop && !GetBit(*runallonstop, 0))
 		{
-			const char* configStr = "runafterstop";
-			*ConfigVar<int>(configStr) = abs((int)ct->user);
-			char tmp[256];
-			snprintf(tmp, sizeof(tmp), "%d", abs((int)ct->user));
-			WritePrivateProfileString("reaper", configStr, tmp, get_ini_file());
+			ConfigVar<int> runafterstop{"runafterstop"};
+			*runafterstop = abs((int)ct->user);
+			runafterstop.save();
 		}
 	}
 }
 
 void SetMoveCursorOnPaste (COMMAND_T* ct)
 {
-	const char* configStr = "itemclickmovecurs";
-
-	ConfigVar<int> option(configStr);
+	ConfigVar<int> option{"itemclickmovecurs"};
 	if(!option) return;
 	*option = ToggleBit(*option, abs((int)ct->user));
-
-	char tmp[256];
-	snprintf(tmp, sizeof(tmp), "%d", *option);
-	WritePrivateProfileString("reaper", configStr, tmp, get_ini_file());
+	option.save();
 }
 
 void SetPlaybackStopOptions (COMMAND_T* ct)
 {
-	const char* configStr = (int)ct->user == 0 ? "stopprojlen" : "viewadvance";
-
-	ConfigVar<int> option(configStr);
+	ConfigVar<int> option{ct->user == 0 ? "stopprojlen" : "viewadvance"};
 	if(!option) return;
 	*option = ToggleBit(*option, (int)ct->user);
-
-	char tmp[256];
-	snprintf(tmp, sizeof(tmp), "%d", *option);
-	WritePrivateProfileString("reaper", configStr, tmp, get_ini_file());
+	option.save();
 }
 
 void SetGridMarkerZOrder (COMMAND_T* ct)
 {
-	const char* configStr = (((int)ct->user > 0) ? "gridinbg" : "gridinbg2");
-
-	int option = abs((int)ct->user) - 1;
-	ConfigVar<int>(configStr).try_set(option);
-
-	char tmp[256];
-	snprintf(tmp, sizeof(tmp), "%d", option);
-	WritePrivateProfileString("reaper", configStr, tmp, get_ini_file());
+	ConfigVar<int> option{(int)ct->user > 0 ? "gridinbg" : "gridinbg2"};
+	if(!option) return;
+	*option = abs((int)ct->user) - 1;
+	option.save();
 	UpdateArrange();
 }
 

@@ -394,16 +394,11 @@ int IsRenderSpeedRealtime(COMMAND_T* = nullptr)
 
 void ToggleRenderSpeedRealtimeNotLim(COMMAND_T* = nullptr)
 {
-	const char* configStr = "workrender";
-	ConfigVar<int> option(configStr);
+	ConfigVar<int> option{"workrender"};
 	if (!option) return;
-
 	*option = ToggleBit(*option, 3);
+	option.save();
 	RefreshToolbar(0);
-
-	char tmp[256];
-	snprintf(tmp, sizeof(tmp), "%d", *option);
-	WritePrivateProfileString("reaper", configStr, tmp, get_ini_file());
 }
 
 // toggle Xenakios track height actions and SWS vertical zoom actions obey track height lock, #966

@@ -347,20 +347,16 @@ void VerticalZoomSelectedEnvelopeLoUpHalf(COMMAND_T* ct)
 
 void SetVerticalZoomCenter(COMMAND_T* ct)
 {
-	*ConfigVar<int>("vzoommode") = (int)ct->user;
-
-	char tmp[256];
-	snprintf(tmp, sizeof(tmp), "%d", (int)ct->user);
-	WritePrivateProfileString("reaper", "vzoommode", tmp, get_ini_file());
+	ConfigVar<int> vzoommode{"vzoommode"};
+	*vzoommode = (int)ct->user;
+	vzoommode.save();
 }
 
 void SetHorizontalZoomCenter(COMMAND_T* ct)
 {
-	*ConfigVar<int>("zoommode") = (int)ct->user;
-
-	char tmp[256];
-	snprintf(tmp, sizeof(tmp), "%d", (int)ct->user);
-	WritePrivateProfileString("reaper", "zoommode", tmp, get_ini_file());
+	ConfigVar<int> zoommode{"zoommode"};
+	*zoommode = (int)ct->user;
+	zoommode.save();
 }
 
 //---------//

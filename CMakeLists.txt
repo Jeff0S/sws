@@ -144,9 +144,6 @@ add_library(sws SHARED
   sws_util.cpp
   sws_waitdlg.cpp
   sws_wnd.cpp
-  Utility/Base64.cpp
-  Utility/envelope.cpp
-  Utility/hidpi.cpp
   Zoom.cpp
 )
 
@@ -299,6 +296,7 @@ add_subdirectory(Snapshots)
 add_subdirectory(SnM)
 add_subdirectory(snooks)
 add_subdirectory(TrackList)
+add_subdirectory(Utility)
 add_subdirectory(Wol)
 add_subdirectory(Xenakios)
 
